@@ -3,7 +3,8 @@ import pathlib
 from typing import BinaryIO, Dict
 
 import click
-from common.types import TokenPair
+
+from cs336_basics.common.types import TokenPair
 
 
 def find_chunk_boundaries(
@@ -61,7 +62,7 @@ def pretokenlize_in_parallel(
 
 
 @click.command()
-@click.option("--file", "-f", require=True, help="Filepath to run pretoken")
+@click.option("--file", "-f", required=True, help="Filepath to run pretoken")
 @click.option("--parallel", "-p", is_flag=True, help="Enable parallel")
 @click.option("--num_process", "-n", default=4, help="Number of Process")
 def run_pretoken(file: str, parallel: bool, num_process: int):

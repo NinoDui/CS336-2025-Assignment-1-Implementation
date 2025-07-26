@@ -21,6 +21,13 @@ dependencies = [
     "click>=8.1.8",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "click",
+    "pytest",
+    "black",
+    "flake8"
+]
 
 
 [tool.setuptools.packages.find]
