@@ -39,11 +39,14 @@ package = true
 python-preference = "managed"
 
 [[tool.uv.index]]
+url = "https://pypi.tuna.tsinghua.edu.cn/pypi/simple"
+default = true
+
+[[tool.uv.index]]
 url = "https://mirrors.aliyun.com/pypi/simple"
 
 [[tool.uv.index]]
-url = "https://pypi.tuna.tsinghua.edu.cn/pypi/simple"
-default = true
+url = "https://pypi.mirrors.ustc.edu.cn/simple/"
 
 [tool.pytest.ini_options]
 log_cli = true
