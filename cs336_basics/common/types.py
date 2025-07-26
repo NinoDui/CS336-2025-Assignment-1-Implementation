@@ -1,4 +1,4 @@
-from typing import Dict, Tuple, TypeAlias
+from typing import Tuple, TypeAlias
 
 # Tokenize
-TokenPair: TypeAlias = Dict[Tuple[bytes, bytes], int]  # Example: {(a, b): 3}
+TokenPair: TypeAlias = Tuple[bytes, bytes]  # Example: {(a, b): 3}

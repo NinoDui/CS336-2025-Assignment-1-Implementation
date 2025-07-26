@@ -1,10 +1,15 @@
+import logging
 import os
 import pathlib
-from typing import BinaryIO, Dict
+from typing import BinaryIO, Dict, List
 
 import click
 
+from cs336_basics.common import setup_logging
 from cs336_basics.common.types import TokenPair
+
+setup_logging()
+logger = logging.getLogger(__name__)
 
 
 def find_chunk_boundaries(
@@ -50,8 +55,23 @@ def find_chunk_boundaries(
                 break
             initial_position += mini_chunk_size
 
+    logger.debug(
+        f"Desire Chunks: {desired_num_chunks}, Special Tokens: {split_special_token!r}\nChunks: {chunk_boundaries}"  # noqa: E501
+    )
     # Make sure all boundaries are unique, but might be fewer than desired_num_chunks   # noqa: E501
     return sorted(set(chunk_boundaries))
+
+
+def pretoken(
+    chunk: str | bytes, special_token: List[str] | None = None
+) -> Dict[TokenPair, int]:
+    if isinstance(chunk, str):
+        chunk = chunk.encode("utf-8")
+
+    pair_to_cnt: Dict = {}
+    for pair in zip(chunk[:-1], chunk[1:]):
+        pair_to_cnt[pair] = pair_to_cnt.get(pair, 0) + 1
+    return pair_to_cnt
 
 
 # Usage
@@ -78,7 +98,8 @@ def run_pretoken(file: str, parallel: bool, num_process: int):
                 chunk = f.read(e - s).decode(
                     "utf-8", errors="ignore"
                 )  # bytes in, string out
-                print(len(chunk))
+                current_cnt = pretoken(chunk)
+                print(current_cnt)
 
 
 if __name__ == "__main__":
