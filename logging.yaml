@@ -3,7 +3,7 @@ formatters:
   simple:
     format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
   detail:
-    format: "%(asctime)s [%(process)d] [%(filename)s] %(funcName)s:%(lineno)d %(message)s"
+    format: "[%(asctime)s][%(process)d][%(filename)s %(funcName)s:%(lineno)d] %(message)s"
 handlers:
   console:
     class: logging.StreamHandler
@@ -16,9 +16,9 @@ handlers:
     formatter: detail
     filename: log/app.log
     when: 'H'
-    inteerval: 1
+    interval: 1
     backupCount: 24
     encoding: utf-8
 root:
-  level: INFO
+  level: DEBUG
   handlers: [console, file]
