@@ -32,5 +32,4 @@ repos:
     rev: v1.16.1
     hooks:
     - id: mypy
-      language: system
-      args: ["--config-file=pyproject.toml"]
+      args: ["--config-file", "pyproject.toml", "--no-pretty"]

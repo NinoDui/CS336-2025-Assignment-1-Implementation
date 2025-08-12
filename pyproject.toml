@@ -82,3 +82,10 @@ exclude = [
     ".*_test\\.py$",
     "test_.*\\.py$"
 ]
+follow_untyped_imports = true
+disable_error_code = ["import-untyped", "import-not-found"]
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.3.0",
+]

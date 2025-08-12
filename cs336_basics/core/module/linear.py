@@ -39,7 +39,7 @@ class Linear(torch.nn.Module):
         self._init_trunc_coe = (-3, 3)
 
         self.device = device if device is not None else torch.device(C.DEFAULT_DEVICE)
-        self.dtype = dtype if dtype is not None else torch.dtype(C.DEFAULT_DTYPE)
+        self.dtype = dtype if dtype is not None else torch.float32
 
         self.W = torch.nn.Parameter(
             torch.zeros(out_features, in_features, device=self.device, dtype=self.dtype)
@@ -48,8 +48,8 @@ class Linear(torch.nn.Module):
             self.W,
             mean=self._init_mean,
             std=self._init_std,
-            a=self._init_trunc_c[0] * self._init_std,
-            b=self._init_trunc_c[1] * self._init_std,
+            a=self._init_trunc_coe[0] * self._init_std,
+            b=self._init_trunc_coe[1] * self._init_std,
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
