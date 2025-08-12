@@ -23,6 +23,10 @@ dependencies = [
     "pybind11",
     "numdifftools",
     "ty>=0.0.1a16",
+    "click>=8.1.8",
+    "pyyaml>=6.0.2",
+    "pybind11",
+    "numdifftools"
 ]
 
 [project.optional-dependencies]
@@ -54,6 +58,7 @@ default = true
 
 [[tool.uv.index]]
 url = "https://mirrors.aliyun.com/pypi/simple"
+default = true
 
 [[tool.uv.index]]
 url = "https://pypi.mirrors.ustc.edu.cn/simple/"
