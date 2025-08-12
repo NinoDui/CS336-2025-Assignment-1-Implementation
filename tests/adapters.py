@@ -1,13 +1,18 @@
 from __future__ import annotations
 
-import os
-from typing import IO, Any, BinaryIO
 from collections.abc import Iterable
-from jaxtyping import Float, Int
+import os
+from typing import Any
+from typing import BinaryIO
+from typing import IO
 
+from jaxtyping import Float
+from jaxtyping import Int
 import numpy.typing as npt
 import torch
 from torch import Tensor
+
+from cs336_basics.core import module as M
 
 
 def run_linear(
@@ -28,8 +33,9 @@ def run_linear(
     Returns:
         Float[Tensor, "... d_out"]: The transformed output of your linear module.
     """
-
-    raise NotImplementedError
+    L = M.Linear(d_in, d_out)
+    L.load_state_dict({"W": weights})
+    return L(in_features)
 
 
 def run_embedding(
@@ -50,8 +56,9 @@ def run_embedding(
     Returns:
         Float[Tensor, "... d_model"]: Batch of embeddings returned by your Embedding layer.
     """
-
-    raise NotImplementedError
+    emb = M.Embedding(vocab_size, d_model)
+    emb.load_state_dict({"vocab": weights})
+    return emb(token_ids)
 
 
 def run_swiglu(
@@ -285,8 +292,8 @@ def run_transformer_lm(
     d_ff: int,
     rope_theta: float,
     weights: dict[str, Tensor],
-    in_indices: Int[Tensor, " batch_size sequence_length"],
-) -> Float[Tensor, " batch_size sequence_length vocab_size"]:
+    in_indices: Int[Tensor, "batch_size sequence_length"],
+) -> Float[Tensor, "batch_size sequence_length vocab_size"]:
     """Given the weights of a Transformer language model and input indices,
     return the output of running a forward pass on the input indices.
 
@@ -300,7 +307,7 @@ def run_transformer_lm(
         num_heads (int): Number of heads to use in multi-headed attention. `d_model` must be
             evenly divisible by `num_heads`.
         d_ff (int): Dimensionality of the feed-forward inner layer (section 3.3).
-        rope_theta (float): The RoPE $\Theta$ parameter.
+        rope_theta (float): The RoPE $\Theta$ parameter.    # type: ignore[SyntaxWarning]
         weights (dict[str, Tensor]):
             State dict of our reference implementation. {num_layers} refers to an
             integer between `0` and `num_layers - 1` (the layer index).
@@ -361,7 +368,7 @@ def run_transformer_lm(
 def run_rmsnorm(
     d_model: int,
     eps: float,
-    weights: Float[Tensor, " d_model"],
+    weights: Float[Tensor, "... d_model"],
     in_features: Float[Tensor, " ... d_model"],
 ) -> Float[Tensor, " ... d_model"]:
     """Given the weights of a RMSNorm affine transform,
@@ -435,7 +442,7 @@ def run_softmax(in_features: Float[Tensor, " ..."], dim: int) -> Float[Tensor, "
 
 
 def run_cross_entropy(
-    inputs: Float[Tensor, " batch_size vocab_size"], targets: Int[Tensor, " batch_size"]
+    inputs: Float[Tensor, "batch_size vocab_size"], targets: Int[Tensor, "batch_size"]  # type: ignore[name-defined]
 ) -> Float[Tensor, ""]:
     """Given a tensor of inputs and targets, compute the average cross-entropy
     loss across examples.
@@ -452,7 +459,9 @@ def run_cross_entropy(
     raise NotImplementedError
 
 
-def run_gradient_clipping(parameters: Iterable[torch.nn.Parameter], max_l2_norm: float) -> None:
+def run_gradient_clipping(
+    parameters: Iterable[torch.nn.Parameter], max_l2_norm: float
+) -> None:
     """Given a set of parameters, clip their combined gradients to have l2 norm at most max_l2_norm.
 
     Args:

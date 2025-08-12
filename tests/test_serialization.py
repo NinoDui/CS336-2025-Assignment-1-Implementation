@@ -3,7 +3,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from .adapters import get_adamw_cls, run_load_checkpoint, run_save_checkpoint
+from .adapters import get_adamw_cls
+from .adapters import run_load_checkpoint
+from .adapters import run_save_checkpoint
 
 
 class _TestNet(nn.Module):
@@ -20,7 +22,9 @@ class _TestNet(nn.Module):
         return x
 
 
-def are_optimizers_equal(optimizer1_state_dict, optimizer2_state_dict, atol=1e-8, rtol=1e-5):
+def are_optimizers_equal(
+    optimizer1_state_dict, optimizer2_state_dict, atol=1e-8, rtol=1e-5
+):
     # Check if the keys of the main dictionaries are equal (e.g., 'state', 'param_groups')
     if set(optimizer1_state_dict.keys()) != set(optimizer2_state_dict.keys()):
         return False
@@ -98,7 +102,9 @@ def test_checkpointing(tmp_path):
         betas=(0.9, 0.999),
         eps=1e-8,
     )
-    loaded_iterations = run_load_checkpoint(src=serialization_path, model=new_model, optimizer=new_optimizer)
+    loaded_iterations = run_load_checkpoint(
+        src=serialization_path, model=new_model, optimizer=new_optimizer
+    )
     assert it == loaded_iterations
 
     # Compare the loaded model state with the original model state

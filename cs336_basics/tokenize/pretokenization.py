@@ -1,7 +1,9 @@
 import logging
 import os
 import pathlib
-from typing import BinaryIO, Dict, List
+from typing import BinaryIO
+from typing import Dict
+from typing import List
 
 import click
 
