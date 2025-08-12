@@ -32,7 +32,8 @@ dev = [
     "black",
     "flake8",
     "mypy",
-    "pre-commit",
+    "pre-commit>=4.3.0",
+    "types-torch>=0.1.1",
 ]
 
 [build-system]
@@ -85,7 +86,6 @@ exclude = [
 follow_untyped_imports = true
 disable_error_code = ["import-untyped", "import-not-found"]
 
-[dependency-groups]
-dev = [
-    "pre-commit>=4.3.0",
-]
+[[tool.mypy.overrides]]
+module = "torch.*"
+ignore_missing_imports = true
