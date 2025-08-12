@@ -76,7 +76,6 @@ ignore = [
 ]
 
 [tool.mypy]
-# Exclude test folder
 exclude = [
     "tests/",
     "tests/.*",
