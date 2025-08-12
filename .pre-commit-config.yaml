@@ -35,7 +35,4 @@ repos:
       language: system
       args: [
         "--exclude", "tests/",
-        "--exclude", "tests/.*",
-        "--exclude", "_.*_test\\.py$",
-        "--exclude", "test_.*\\.py$"
       ]
