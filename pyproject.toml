@@ -20,6 +20,8 @@ dependencies = [
     "wandb>=0.19.7",
     "click>=8.1.8",
     "pyyaml>=6.0.2",
+    "pybind11",
+    "numdifftools"
 ]
 
 [project.optional-dependencies]
