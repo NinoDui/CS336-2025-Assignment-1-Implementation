@@ -31,7 +31,8 @@ dev = [
     "pytest",
     "black",
     "flake8",
-    "mypy"
+    "mypy",
+    "pre-commit",
 ]
 
 [build-system]
@@ -72,4 +73,13 @@ line-length = 120
 extend-select = ["UP"]
 ignore = [
     "F722"
+]
+
+[tool.mypy]
+# Exclude test folder
+exclude = [
+    "tests/",
+    "tests/.*",
+    ".*_test\\.py$",
+    "test_.*\\.py$"
 ]
