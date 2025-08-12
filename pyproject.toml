@@ -1,6 +1,6 @@
 [project]
 name = "cs336_basics"
-version = "1.0.3"
+version = "1.0.5"
 description = "CS336 Assignment 1"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -21,7 +21,8 @@ dependencies = [
     "click>=8.1.8",
     "pyyaml>=6.0.2",
     "pybind11",
-    "numdifftools"
+    "numdifftools",
+    "ty>=0.0.1a16",
 ]
 
 [project.optional-dependencies]
@@ -33,10 +34,13 @@ dev = [
     "mypy"
 ]
 
+[build-system]
+requires = ["uv_build>=0.8.3,<0.9.0"]
+build-backend = "uv_build"
 
-[tool.setuptools.packages.find]
-include = ["cs336_basics"]
-
+[tool.uv.build-backend]
+module-name = "cs336_basics"
+module-root = ""
 
 [tool.uv]
 package = true
@@ -56,7 +60,6 @@ url = "https://pypi.mirrors.ustc.edu.cn/simple/"
 log_cli = true
 log_cli_level = "WARNING"
 addopts = "-s"
-
 
 [tool.ruff]
 line-length = 120
