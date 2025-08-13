@@ -1,6 +1,3 @@
-import functools
-import math
-
 import torch
 
 from cs336_basics.common import constants as C
