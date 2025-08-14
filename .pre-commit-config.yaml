@@ -20,7 +20,6 @@ repos:
       "--profile",
       "black",
       "--filter-files",
-      "--force-single-line-imports",
       "--force-alphabetical-sort-within-sections",
       "--force-sort-within-sections"
     ]

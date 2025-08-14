@@ -1,7 +1,7 @@
-from jaxtyping import Float
-from jaxtyping import Int
-from jaxtyping import Tensor
+import einops
+from jaxtyping import Float, Int
 import torch
+from torch import Tensor
 
 from cs336_basics.common import constants as C
 
@@ -38,14 +38,15 @@ class RotaryPositionalEmbedding(torch.nn.Module):
 
         # Generate [1, 3, 5, ..., d_k - 1] and repeat each element twice
         self._t_k = torch.arange(1, d_k, 2, device=self.device).repeat_interleave(2)
-        self._t_i = torch.arange(1, d_k + 1, device=self.device)
+        self._t_i = torch.arange(0, self.max_seq_len, device=self.device)
+        self._t_i = einops.repeat(self._t_i, "max_seq_len -> max_seq_len d_k", d_k=d_k)
         self._t_theta = self._t_i / torch.pow(self.theta, (2 * self._t_k - 1) / d_k)
 
         self._cos_theta = torch.cos(self._t_theta)
         self._sin_theta = torch.sin(self._t_theta)
 
-        self.register_buffer("cos_theta", self._cos_theta, persistent=True)
-        self.register_buffer("sin_theta", self._sin_theta, persistent=True)
+        self.register_buffer("cos_theta_buf", self._cos_theta, persistent=True)
+        self.register_buffer("sin_theta_buf", self._sin_theta, persistent=True)
 
     def forward(
         self,
@@ -61,14 +62,15 @@ class RotaryPositionalEmbedding(torch.nn.Module):
         Returns:
             Float[Tensor, "... seq_len d_k"]: Output tensor of shape (..., seq_len, d_k)
         """
-        cos_theta_i = self.cos_theta[token_positions]
-        sin_theta_i = self.sin_theta[token_positions]
+        cos_theta = self.cos_theta_buf[token_positions]
+        sin_theta = self.sin_theta_buf[token_positions]
 
-        # x: [x1, x2, x3, ..., x_n]
-        # shift left and then negate
-        # -x.roll(-1): [-x2, -x3, ..., -x_n, -x1]
-        # stack over the last dimension
-        # [[-x2, x1], [-x3, x2], ..., [-x1, x_n]]
-        x_reordered = torch.stack([-x.roll(-1), x], dim=-1).flatten()[:-1]
-        x_rotated = x * cos_theta_i + x_reordered * sin_theta_i
-        return x_rotated
+        # given X of shape (..., seq_len, d), reorder amont the D dimension (last dimension)
+        # for each D dimension, (x0, x1, x2, ..., x_n-1) -> (x0, x1), (x2, x3), ..., (x_n-2, x_n-1)
+        pairs = einops.rearrange(x, "... seq_len (d_k n) -> ... seq_len d_k n", n=2)
+        pairs = torch.stack([-pairs[..., -1], pairs[..., 0]], dim=-1)
+        x_reordered = einops.rearrange(
+            pairs, "... seq_len d_k n -> ... seq_len (d_k n)", n=2
+        )
+
+        return x * cos_theta + x_reordered * sin_theta
