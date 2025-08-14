@@ -64,6 +64,11 @@ class RotaryPositionalEmbedding(torch.nn.Module):
         cos_theta_i = self.cos_theta[token_positions]
         sin_theta_i = self.sin_theta[token_positions]
 
+        # x: [x1, x2, x3, ..., x_n]
+        # shift left and then negate
+        # -x.roll(-1): [-x2, -x3, ..., -x_n, -x1]
+        # stack over the last dimension
+        # [[-x2, x1], [-x3, x2], ..., [-x1, x_n]]
         x_reordered = torch.stack([-x.roll(-1), x], dim=-1).flatten()[:-1]
         x_rotated = x * cos_theta_i + x_reordered * sin_theta_i
         return x_rotated
