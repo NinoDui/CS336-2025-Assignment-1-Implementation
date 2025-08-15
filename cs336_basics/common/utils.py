@@ -1,11 +1,10 @@
+from collections.abc import Callable
 import functools
-from typing import Callable
 
 import torch
 
 
 def fp32_precision(func: Callable) -> Callable:
-
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         idx_to_dtype = {}
@@ -25,6 +24,7 @@ def fp32_precision(func: Callable) -> Callable:
 
         result = func(*new_args, **new_kwargs)
 
+        # TODO(nino): change the logic for setting back the dtype
         for idx, dtype in idx_to_dtype.items():
             if isinstance(result, torch.Tensor):
                 result = result.to(dtype)
@@ -34,3 +34,18 @@ def fp32_precision(func: Callable) -> Callable:
         return result
 
     return wrapper
+
+
+def softmax(x: torch.Tensor, dim: int | None = None) -> torch.Tensor:
+    """
+    Softmax function
+    """
+    if dim is None:
+        # softmax over all dimensions
+        dim = tuple(range(x.ndim))  # type: ignore[assignment]
+    elif dim < 0:
+        dim = (x.ndim + dim) % x.ndim
+
+    max_x_on_dim, indices = torch.max(x, dim=dim, keepdim=True)
+    exp_x = torch.exp(x - max_x_on_dim)
+    return exp_x / exp_x.sum(dim=dim, keepdim=True)

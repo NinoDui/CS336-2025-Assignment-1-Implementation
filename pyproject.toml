@@ -72,22 +72,26 @@ addopts = "-s"
 line-length = 88 # Matches Black's default
 target-version = "py311"
 
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "TID"]
+extend-select = ["UP"]
+ignore = ["F722"]
+
 [tool.ruff.lint.extend-per-file-ignores]
 # Also ignore `E402` in all `__init__.py` files.
 "__init__.py" = ["E402", "F401", "F403", "E501"]
-
-[tool.ruff.lint]
-extend-select = ["UP"]
-ignore = [
-    "F722"
-]
-select = ["E", "F", "W", "I", "UP", "B", "TID"]
 
 [tool.ruff.lint.isort]
 force-sort-within-sections = true
 combine-as-imports = true
 force-single-line = false
-sections = ["future", "standard-library", "third-party", "first-party", "local-folder"]
+section-order = [
+    "future",
+    "standard-library",
+    "third-party",
+    "first-party",
+    "local-folder",
+]
 
 [tool.mypy]
 exclude = [
