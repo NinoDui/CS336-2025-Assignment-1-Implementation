@@ -38,6 +38,7 @@ dev = [
     "mypy",
     "pre-commit>=4.3.0",
     "types-torch>=0.1.1",
+    "ipykernel"
 ]
 
 [build-system]

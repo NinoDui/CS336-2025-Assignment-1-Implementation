@@ -1,9 +1,12 @@
+from typing import TypeAlias
+
 import einops
 from jaxtyping import Float, Int
 import torch
-from torch import Tensor
 
 from cs336_basics.common import constants as C
+
+Tensor: TypeAlias = torch.Tensor
 
 
 class RotaryPositionalEmbedding(torch.nn.Module):
@@ -36,11 +39,10 @@ class RotaryPositionalEmbedding(torch.nn.Module):
         self.max_seq_len = max_seq_len
         self.device = device if device is not None else torch.device(C.DEFAULT_DEVICE)
 
-        # Generate [1, 3, 5, ..., d_k - 1] and repeat each element twice
-        self._t_k = torch.arange(1, d_k, 2, device=self.device).repeat_interleave(2)
+        self._t_k = torch.arange(0, d_k, 2, device=self.device).repeat_interleave(2)
         self._t_i = torch.arange(0, self.max_seq_len, device=self.device)
         self._t_i = einops.repeat(self._t_i, "max_seq_len -> max_seq_len d_k", d_k=d_k)
-        self._t_theta = self._t_i / torch.pow(self.theta, (2 * self._t_k - 1) / d_k)
+        self._t_theta = self._t_i / torch.pow(self.theta, self._t_k / d_k)
 
         self._cos_theta = torch.cos(self._t_theta)
         self._sin_theta = torch.sin(self._t_theta)
@@ -74,3 +76,9 @@ class RotaryPositionalEmbedding(torch.nn.Module):
         )
 
         return x * cos_theta + x_reordered * sin_theta
+
+    def __repr__(self):
+        return f"RotaryPositionalEmbedding(theta={self.theta}, d_k={self.d_k}, max_seq_len={self.max_seq_len})"
+
+    def __str__(self):
+        return self.__repr__()
