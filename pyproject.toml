@@ -85,6 +85,9 @@ select = ["E", "F", "W", "I", "UP", "B", "TID"]
 
 [tool.ruff.lint.isort]
 force-sort-within-sections = true
+combine-as-imports = true
+force-single-line = false
+sections = ["future", "standard-library", "third-party", "first-party", "local-folder"]
 
 [tool.mypy]
 exclude = [
