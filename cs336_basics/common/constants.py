@@ -11,3 +11,6 @@ VALID_DEVICE = ["cpu", "cuda", "mps"]
 VALID_DTYPE = ["float32", "bfloat16", "float8"]  # avoid float16
 DEFAULT_DEVICE = "cpu"
 DEFAULT_DTYPE = "float32"
+
+DEFAULT_ROPE_THETA = 10_000
+DEFAULT_MAX_SEQ_LEN = 2048
