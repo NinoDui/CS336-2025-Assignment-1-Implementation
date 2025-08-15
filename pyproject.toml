@@ -34,7 +34,6 @@ dev = [
     "click",
     "pytest",
     "black",
-    "flake8",
     "mypy",
     "pre-commit>=4.3.0",
     "types-torch>=0.1.1",
@@ -70,7 +69,9 @@ log_cli_level = "WARNING"
 addopts = "-s"
 
 [tool.ruff]
-line-length = 120
+line-length = 88 # Matches Black's default
+target-version = "py311"
+select = ["E", "F", "W", "I", "UP", "B", "TID"]
 
 [tool.ruff.lint.extend-per-file-ignores]
 # Also ignore `E402` in all `__init__.py` files.
@@ -81,6 +82,9 @@ extend-select = ["UP"]
 ignore = [
     "F722"
 ]
+
+[tool.ruff.isort]
+force-sort-within-sections = true
 
 [tool.mypy]
 exclude = [
