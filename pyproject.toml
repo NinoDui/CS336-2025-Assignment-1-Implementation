@@ -71,6 +71,7 @@ addopts = "-s"
 [tool.ruff]
 line-length = 88 # Matches Black's default
 target-version = "py311"
+exclude = ["tests/"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B", "TID"]

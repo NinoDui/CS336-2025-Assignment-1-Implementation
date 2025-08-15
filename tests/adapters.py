@@ -2,13 +2,14 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 import os
-from typing import Any, BinaryIO, IO
+from typing import IO, Any, BinaryIO
 
 from jaxtyping import Float, Int
 import numpy.typing as npt
 import torch
 from torch import Tensor
 
+from cs336_basics.common import utils
 from cs336_basics.core import module as M
 
 
@@ -294,7 +295,7 @@ def run_transformer_lm(
     weights: dict[str, Tensor],
     in_indices: Int[Tensor, "batch_size sequence_length"],
 ) -> Float[Tensor, "batch_size sequence_length vocab_size"]:
-    """Given the weights of a Transformer language model and input indices,
+    r"""Given the weights of a Transformer language model and input indices,
     return the output of running a forward pass on the input indices.
 
     This function should use RoPE.
@@ -440,11 +441,12 @@ def run_softmax(in_features: Float[Tensor, " ..."], dim: int) -> Float[Tensor, "
         Float[Tensor, "..."]: Tensor of with the same shape as `in_features` with the output of
         softmax normalizing the specified `dim`.
     """
-    raise NotImplementedError
+    return utils.softmax(in_features, dim=dim)
 
 
 def run_cross_entropy(
-    inputs: Float[Tensor, "batch_size vocab_size"], targets: Int[Tensor, "batch_size"]  # type: ignore[name-defined]
+    inputs: Float[Tensor, "batch_size vocab_size"],
+    targets: Int[Tensor, batch_size],  # type: ignore[name-defined]
 ) -> Float[Tensor, ""]:
     """Given a tensor of inputs and targets, compute the average cross-entropy
     loss across examples.
