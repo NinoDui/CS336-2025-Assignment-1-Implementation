@@ -11,8 +11,10 @@ Tensor: TypeAlias = torch.Tensor
 
 class RotaryPositionalEmbedding(torch.nn.Module):
     """Rotary Positional Embedding (RoPE)
-    For a given query token $q^i = W_q x^i$, apply a rotation matrix $R_i$ to the query token, where the matrix will rotate pairs of embedding elements,
-    q^i_{2k-1, 2k} as 2D vectors by the angle $\theta_{i,k} = i/\Theta^{(2k-1)/d}$
+    For a given query token $q^i = W_q x^i$,
+    apply a rotation matrix $R_i$ to the query token,
+    where the matrix will rotate pairs of embedding elements,
+    q^i_{2k-1, 2k} as 2D vectors by the angle $\theta_{i,k} = i/\\Theta^{(2k-1)/d}$
     """
 
     def __init__(
@@ -30,7 +32,7 @@ class RotaryPositionalEmbedding(torch.nn.Module):
             theta (float): Theta value of the RoPE
             d_k (int): dimension of the query and key vectors
             max_seq_len (int): Maximum sequence length that will be used
-            device (torch.device | None, optional): Device to store the buffer on. Defaults to CPU.
+            device (torch.device | None, optional): Defaults to CPU.
         """
         super().__init__()
 
@@ -58,8 +60,8 @@ class RotaryPositionalEmbedding(torch.nn.Module):
         """Forward pass of the RoPE module
 
         Args:
-            x (Float[Tensor, "... seq_len d_k"]): Input tensor of shape (..., seq_len, d_k)
-            token_positions (Int[Tensor, "... seq_len"]): Token positions of shape (..., seq_len)
+            x: Input tensor of shape (..., seq_len, d_k)
+            token_positions: Token positions of shape (..., seq_len)
 
         Returns:
             Float[Tensor, "... seq_len d_k"]: Output tensor of shape (..., seq_len, d_k)
@@ -67,8 +69,11 @@ class RotaryPositionalEmbedding(torch.nn.Module):
         cos_theta = self.cos_theta_buf[token_positions]
         sin_theta = self.sin_theta_buf[token_positions]
 
-        # given X of shape (..., seq_len, d), reorder amont the D dimension (last dimension)
-        # for each D dimension, (x0, x1, x2, ..., x_n-1) -> (x0, x1), (x2, x3), ..., (x_n-2, x_n-1)
+        # given X of shape (..., seq_len, d), reorder the last dimension:
+        # (x0, x1, x2, ..., x_n-1)
+        # -> (x0, x1), (x2, x3), ..., (x_n-2, x_n-1)
+        # -> (-x1, x0), (-x3, x2), ..., (-x_n-1, x_n-2)
+        # -> (-x1, x0, -x3, x2, ..., -x_n-1, x_n-2)
         pairs = einops.rearrange(x, "... seq_len (d_k n) -> ... seq_len d_k n", n=2)
         pairs = torch.stack([-pairs[..., -1], pairs[..., 0]], dim=-1)
         x_reordered = einops.rearrange(
@@ -78,7 +83,8 @@ class RotaryPositionalEmbedding(torch.nn.Module):
         return x * cos_theta + x_reordered * sin_theta
 
     def __repr__(self):
-        return f"RotaryPositionalEmbedding(theta={self.theta}, d_k={self.d_k}, max_seq_len={self.max_seq_len})"
+        return f"RotaryPositionalEmbedding(theta={self.theta}, \
+            d_k={self.d_k}, max_seq_len={self.max_seq_len})"
 
     def __str__(self):
         return self.__repr__()
