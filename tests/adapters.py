@@ -12,6 +12,7 @@ from torch import Tensor
 from cs336_basics.core import functions as F
 from cs336_basics.core import module as M
 from cs336_basics.model import attn
+from cs336_basics.model import transformer
 
 
 def run_linear(
@@ -286,7 +287,19 @@ def run_transformer_block(
         Float[Tensor, "batch sequence_length d_model"] Tensor with the output of
         running the Transformer block on the input features while using RoPE.
     """
-    raise NotImplementedError
+    block = transformer.TransformerBlock(d_model, num_heads, d_ff, causal_mask=True, apply_rope=True, rope_max_seq_len=max_seq_len, rope_theta=theta)
+    block.load_state_dict({
+        "attn.W_q.W": weights["attn.q_proj.weight"],
+        "attn.W_k.W": weights["attn.k_proj.weight"],
+        "attn.W_v.W": weights["attn.v_proj.weight"],
+        "attn.W_o.W": weights["attn.output_proj.weight"],
+        "attn_norm.G": weights["ln1.weight"],
+        "ff.W1.W": weights["ffn.w1.weight"],
+        "ff.W2.W": weights["ffn.w2.weight"],
+        "ff.W3.W": weights["ffn.w3.weight"],
+        "ff_norm.G": weights["ln2.weight"],
+    }, strict=False)
+    return block(in_features)
 
 
 def run_transformer_lm(
