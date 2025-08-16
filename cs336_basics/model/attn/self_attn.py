@@ -58,7 +58,7 @@ class MultiHeadSelfAttention(torch.nn.Module):
         self.W_v = M.Linear(d_model, self._d_v * num_heads, device=self.device)
         self.W_o = M.Linear(self._d_v * num_heads, d_model, device=self.device)
 
-        self._apply_rope = apply_rope
+        self.apply_rope = apply_rope
         if apply_rope:
             rope_theta = kwargs.get("rope_theta", C.DEFAULT_ROPE_THETA)
             rope_max_seq_len = kwargs.get("rope_max_seq_len", C.DEFAULT_MAX_SEQ_LEN)
@@ -108,3 +108,15 @@ class MultiHeadSelfAttention(torch.nn.Module):
         o = F.scaled_dot_product_attention(Q, K, V, mask=causal_mask)
         o = einops.rearrange(o, "... h seq_len d_v -> ... seq_len (h d_v)")
         return self.W_o(o)
+
+    def __repr__(self):
+        params = [f"{k}={v}" for k, v in self.__dict__.items() if not k.startswith("_")]
+        params += [
+            f"positional_emb={self.emb}"
+            if self.emb is not None
+            else "positional_emb=None"
+        ]
+        return f"{self.__class__.__name__}({', '.join(params)})"
+
+    def __str__(self):
+        return self.__repr__()

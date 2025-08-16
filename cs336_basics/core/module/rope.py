@@ -83,8 +83,10 @@ class RotaryPositionalEmbedding(torch.nn.Module):
         return x * cos_theta + x_reordered * sin_theta
 
     def __repr__(self):
-        return f"RotaryPositionalEmbedding(theta={self.theta}, \
-            d_k={self.d_k}, max_seq_len={self.max_seq_len})"
+        params = [
+            f"{k}={v}" for k, v in self.__dict__.items() if not k.startswith("__")
+        ]
+        return f"{self.__class__.__name__}({', '.join(params)})"
 
     def __str__(self):
         return self.__repr__()

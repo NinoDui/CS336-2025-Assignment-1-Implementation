@@ -14,10 +14,14 @@ class Linear(torch.nn.Module):
             - truncated range: (-3 * std, 3 * std)
 
     Args:
-        in_features (int): Number of input features
-        out_features (int): Number of output features
-        device (torch.device, optional): Device to use for the module. Defaults to cpu. # noqa: E501
-        dtype (torch.dtype, optional): Data type to use for the module. Defaults to float32. # noqa: E501
+        in_features (int):
+            Number/dimensionality of input features
+        out_features (int):
+            Number/dimensionality of output features
+        device (torch.device, optional):
+            Device to use for the module. Defaults to cpu
+        dtype (torch.dtype, optional):
+            Data type to use for the module. Defaults to float32
     """
 
     def __init__(
@@ -54,3 +58,11 @@ class Linear(torch.nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return x @ self.W.T
+
+    def __repr__(self):
+        return (
+            f"Linear(in_features={self.in_features}, out_features={self.out_features})"
+        )
+
+    def __str__(self):
+        return self.__repr__()

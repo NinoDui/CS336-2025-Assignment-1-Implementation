@@ -59,3 +59,12 @@ class Embedding(torch.nn.Module):
             torch.Tensor: output Tensor of shape (..., sequence_length, embedding_dim)
         """
         return self.vocab[x]
+
+    def __repr__(self):
+        params = [
+            f"{k}={v}" for k, v in self.__dict__.items() if not k.startswith("__")
+        ]
+        return f"{self.__class__.__name__}({', '.join(params)})"
+
+    def __str__(self):
+        return self.__repr__()

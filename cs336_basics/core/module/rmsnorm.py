@@ -1,7 +1,6 @@
 import torch
 
-from cs336_basics.common import constants as C
-from cs336_basics.common import utils
+from cs336_basics.common import constants as C, utils
 
 
 class RMSNorm(torch.nn.Module):
@@ -38,3 +37,9 @@ class RMSNorm(torch.nn.Module):
         rms_x = torch.sum(x**2, dim=-1, keepdim=True) / self.d_model + self.eps
         rms_x = torch.sqrt(rms_x)
         return x / rms_x * self.G
+
+    def __repr__(self):
+        return f"RMSNorm(d_model={self.d_model}, eps={self.eps})"
+
+    def __str__(self):
+        return self.__repr__()

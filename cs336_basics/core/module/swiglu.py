@@ -1,7 +1,6 @@
 import torch
 
-from cs336_basics.common import constants as C
-from cs336_basics.common import utils
+from cs336_basics.common import constants as C, utils
 from cs336_basics.core import module as M
 
 
@@ -50,3 +49,9 @@ class SwiGLU(torch.nn.Module):
         silu_pass = lin_pass * torch.sigmoid(lin_pass)
         lin_pass_2 = self.W3(x)  # W3: (d_ff, d_model) x -> (..., d_ff)
         return self.W2(silu_pass * lin_pass_2)
+
+    def __repr__(self):
+        return f"SwiGLU(d_model={self.d_model}, d_ff={self.d_ff})"
+
+    def __str__(self):
+        return self.__repr__()
