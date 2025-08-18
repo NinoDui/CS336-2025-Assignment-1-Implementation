@@ -11,6 +11,7 @@ from torch import Tensor
 
 from cs336_basics.core import functions as F
 from cs336_basics.core import module as M
+from cs336_basics.core import loss
 from cs336_basics.model import attn
 from cs336_basics.model import transformer
 
@@ -507,7 +508,7 @@ def run_cross_entropy(
     Returns:
         Float[Tensor, ""]: The average cross-entropy loss across examples.
     """
-    raise NotImplementedError
+    return loss.cross_entropy_loss(inputs, targets)
 
 
 def run_gradient_clipping(
