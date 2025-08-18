@@ -25,10 +25,10 @@ def cross_entropy_loss(
     logits = logits - max_logits
 
     log_sum = torch.log(torch.sum(torch.exp(logits), dim=-1, keepdim=True))
-    prob_at_true_label = logits * torch.eye(logits.shape[-1])[targets]  # (B, ..., L, 1)
-    loss_in_batch = log_sum - torch.sum(
-        prob_at_true_label, dim=-1, keepdim=True
+    prob_at_true_label = torch.gather(
+        logits, dim=-1, index=targets.unsqueeze(-1)
     )  # (B, ..., L, 1)
+    loss_in_batch = log_sum - prob_at_true_label
 
     match reduction:
         case "mean":
