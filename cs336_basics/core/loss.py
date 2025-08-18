@@ -5,7 +5,8 @@ import torch
 def cross_entropy_loss(
     logits: Float[torch.Tensor, "... seq_len vocab_size"],
     targets: Int[torch.Tensor, "... seq_len"],
-) -> float:
+    reduction: str | None = "mean",
+) -> float | Float[torch.Tensor, "... seq_len 1"]:
     """Average cross entropy loss over the batch
 
     Args:
@@ -13,10 +14,12 @@ def cross_entropy_loss(
             Predicted logits of shape (batch_size, seq_len, vocab_size)
         targets (Int[torch.Tensor, "... seq_len"]):
             Target token indices of shape (batch_size, seq_len)
+        reduction (str | None, optional):
+            Reduction method. Defaults to "mean".
 
     Returns:
-        float:
-            Average cross entropy loss over the batch
+        float | Float[torch.Tensor, "... seq_len 1"]:
+            Average cross entropy loss over the batch or the loss per example
     """
     max_logits, _ = torch.max(logits, dim=-1, keepdim=True)
     logits = logits - max_logits
@@ -26,4 +29,11 @@ def cross_entropy_loss(
     loss_in_batch = log_sum - torch.sum(
         prob_at_true_label, dim=-1, keepdim=True
     )  # (B, ..., L, 1)
-    return loss_in_batch.mean()
+
+    match reduction:
+        case "mean":
+            return loss_in_batch.mean()
+        case "sum":
+            return loss_in_batch.sum()
+        case _:
+            return loss_in_batch
