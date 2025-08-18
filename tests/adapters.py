@@ -12,6 +12,7 @@ from torch import Tensor
 from cs336_basics.core import functions as F
 from cs336_basics.core import module as M
 from cs336_basics.core import loss
+from cs336_basics.core import optimizer as opt
 from cs336_basics.model import attn
 from cs336_basics.model import transformer
 
@@ -529,7 +530,7 @@ def get_adamw_cls() -> Any:
     """
     Returns a torch.optim.Optimizer that implements AdamW.
     """
-    raise NotImplementedError
+    return opt.AdamW
 
 
 def run_get_lr_cosine_schedule(
