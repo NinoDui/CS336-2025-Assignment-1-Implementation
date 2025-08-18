@@ -107,7 +107,6 @@ class TransformerLM(torch.nn.Module):
         self.d_ff = d_ff
         self.device = device or torch.device(C.DEFAULT_DEVICE)
 
-        # TODO(nino): replace token_emb with BPE embedding
         self.token_emb = M.Embedding(vocab_size, d_model, device=self.device)
         self.tfm_layers = torch.nn.Sequential(
             *[
