@@ -1,4 +1,3 @@
-from collections.abc import Generator
 import pprint
 
 import click
@@ -27,6 +26,8 @@ def start_training(config: str):
     )
     resume = cfg.get("resume", False)
     enable_gradient_clipping = cfg.get("enable_gradient_clipping", True)
+    # valid_interval = cfg.get("valid_interval", 50)
+    save_interval = cfg.get("save_interval", 100)
 
     # Initialize the model
     model = tfm.TransformerLM(**cfg["model"])
@@ -55,30 +56,21 @@ def start_training(config: str):
     ds_train = np.load(cfg["dataset"]["src_path"], mmap_mode="r")
 
     for iter_idx in range(start_iteration, cfg["max_iterations"]):
-        pair = pl.data_loading(ds_train, **cfg["dataset"])
-        if isinstance(pair, tuple):
-            x, y = pair
-        elif isinstance(pair, Generator):
-            x, y = next(pair)
-        else:
-            raise ValueError(f"Invalid data loading type: {type(pair)}")
+        x, y = pl.data_loading(ds_train, **cfg["dataset"])
         x = x.to(device)
         y = y.to(device)
 
         # Forward pass
         optimizer.zero_grad()
         logits = model(x)
-        loss = L.cross_entropy_loss(logits, y)
+        loss = L.cross_entropy_loss(logits.reshape(-1, logits.shape[-1]), y.reshape(-1))
 
         # Backward pass
-        loss.backward()  # type: ignore[union-attr]
+        loss.backward()
 
         # Gradient clipping
         if enable_gradient_clipping:
             opt.gradient_clipping(model.parameters(), **cfg["gradient_clipping"])
-
-        # Update the model
-        optimizer.step()
 
         # Update the learning rate scheduler
         # TODO(nino): optimize the impl of lr_schedule, it's bare to broadcast the lr to parameter groups in this way     # noqa: E501
@@ -86,8 +78,19 @@ def start_training(config: str):
         for p in optimizer.param_groups():
             p["lr"] = lr
 
-        # Log the loss
+        # Update the model
+        optimizer.step()
+
+        # Log the loss to Weights & Biases
         wb_logger.log({"loss": loss.item()})
+
+        # # Validate the model
+        # if iter_idx % valid_interval == 0:
+        #     pl.validate(model, optimizer, **cfg["dataset"])
+
+        # Save the model
+        if iter_idx % save_interval == 0:
+            pl.save_checkpoint(model, optimizer, iter_idx, **cfg["checkpoint"])
 
 
 if __name__ == "__main__":

@@ -22,12 +22,13 @@ def data_loading(
     context_length: int,
     device: str | None = None,
     **kwargs,
-) -> Generator[pair_type] | pair_type:
+) -> pair_type:
     is_mem_efficient = kwargs.get("is_mem_efficient", False)
     if is_mem_efficient:
-        return _data_loading_to_generator(
+        v = _data_loading_to_generator(
             x, batch_size=batch_size, context_length=context_length, device=device
         )
+        return next(v)
     else:
         return _data_loading(
             x, batch_size=batch_size, context_length=context_length, device=device

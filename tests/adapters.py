@@ -476,13 +476,7 @@ def run_get_batch(
         is the sampled input sequences, and the second tuple item is the corresponding
         language modeling labels.
     """
-    v = pipeline.data_loading(dataset, batch_size=batch_size, context_length=context_length, device=device)
-    if isinstance(v, tuple):
-        return v
-    elif isinstance(v, types.GeneratorType):
-        return next(v)
-    else:
-        raise ValueError(f"Invalid return type: {type(v)}")
+    return pipeline.data_loading(dataset, batch_size=batch_size, context_length=context_length, device=device)
 
 
 def run_softmax(in_features: Float[Tensor, " ..."], dim: int) -> Float[Tensor, " ..."]:
