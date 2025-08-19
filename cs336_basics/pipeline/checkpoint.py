@@ -1,19 +1,13 @@
-import os
-import pathlib
-from typing import IO, BinaryIO, TypeAlias
-
 import torch
 
-from cs336_basics.common import constants as C
-
-dst_type: TypeAlias = str | pathlib.Path | os.PathLike | BinaryIO | IO[bytes]
+from cs336_basics.common import constants as C, types as T
 
 
 def save_checkpoint(
     model: torch.nn.Module,
     optimizer: torch.optim.Optimizer,
     iteration: int,
-    out: dst_type,
+    out: T.FileType,
 ):
     """
     Save the model and optimizer state to a file.
@@ -35,7 +29,7 @@ def save_checkpoint(
 
 
 def load_checkpoint(
-    src: dst_type, model: torch.nn.Module, optimizer: torch.optim.Optimizer
+    src: T.FileType, model: torch.nn.Module, optimizer: torch.optim.Optimizer
 ):
     """
     Load the model and optimizer state from a file.

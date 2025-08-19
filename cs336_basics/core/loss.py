@@ -6,7 +6,7 @@ def cross_entropy_loss(
     logits: Float[torch.Tensor, "... seq_len vocab_size"],
     targets: Int[torch.Tensor, "... seq_len"],
     reduction: str | None = "mean",
-) -> float | Float[torch.Tensor, "... seq_len 1"]:
+) -> Float[torch.Tensor, ""]:
     """Average cross entropy loss over the batch
 
     Args:
@@ -18,7 +18,7 @@ def cross_entropy_loss(
             Reduction method. Defaults to "mean".
 
     Returns:
-        float | Float[torch.Tensor, "... seq_len 1"]:
+        Float[torch.Tensor, ""]:
             Average cross entropy loss over the batch or the loss per example
     """
     max_logits, _ = torch.max(logits, dim=-1, keepdim=True)

@@ -14,7 +14,6 @@ from cs336_basics.core import functions as F
 from cs336_basics.core import module as M
 from cs336_basics.core import loss
 from cs336_basics.core import optimizer as opt
-from cs336_basics.core import lr_schedule
 from cs336_basics.model import attn
 from cs336_basics.model import transformer
 from cs336_basics import pipeline
@@ -567,7 +566,7 @@ def run_get_lr_cosine_schedule(
     Returns:
         Learning rate at the given iteration under the specified schedule.
     """
-    return lr_schedule.lr_schedule("cosine_annealing", max_learning_rate, it, lr_min=min_learning_rate, n_iter_warmup=warmup_iters, n_cosine_annealing=cosine_cycle_iters)
+    return opt.lr_schedule("cosine_annealing", max_learning_rate, it, lr_min=min_learning_rate, n_iter_warmup=warmup_iters, n_cosine_annealing=cosine_cycle_iters)
 
 
 def run_save_checkpoint(
