@@ -88,6 +88,7 @@ def test_gradient_clipping():
     t1_c[-1].requires_grad_(False)
     loss_c = torch.cat(t1_c).sum()
     loss_c.backward()
+
     run_gradient_clipping(t1_c, max_norm)
     t1_c_grads = [torch.clone(t.grad) for t in t1_c if t.grad is not None]
 

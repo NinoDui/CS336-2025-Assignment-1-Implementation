@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 import math
 
 import einops
@@ -9,14 +10,14 @@ def silu(x: torch.Tensor) -> torch.Tensor:
     return x * torch.sigmoid(x)
 
 
-def softmax(x: torch.Tensor, dim: int | None = None) -> torch.Tensor:
+def softmax(x: torch.Tensor, dim: Iterable[int] | int | None = None) -> torch.Tensor:
     """
     Softmax function
     """
     if dim is None:
         # softmax over all dimensions
-        dim = tuple(range(x.ndim))  # type: ignore[assignment]
-    elif dim < 0:
+        dim = tuple(range(x.ndim))
+    elif isinstance(dim, int) and dim < 0:
         dim = (x.ndim + dim) % x.ndim
 
     max_x_on_dim, indices = torch.max(x, dim=dim, keepdim=True)
@@ -38,3 +39,15 @@ def scaled_dot_product_attention(
 
     attn = softmax(attn, dim=-1)
     return attn @ V
+
+
+def l2_norm(
+    x: torch.Tensor, dim: Iterable[int] | int | None = None
+) -> torch.Tensor | float:
+    if dim is None:
+        # l2 norm over all dimensions
+        dim = tuple(range(x.ndim))
+    elif isinstance(dim, int) and dim < 0:
+        dim = (x.ndim + dim) % x.ndim
+
+    return torch.sqrt(torch.sum(x**2, dim=dim))

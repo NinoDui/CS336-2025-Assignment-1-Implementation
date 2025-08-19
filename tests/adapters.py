@@ -496,7 +496,7 @@ def run_softmax(in_features: Float[Tensor, " ..."], dim: int) -> Float[Tensor, "
 
 def run_cross_entropy(
     inputs: Float[Tensor, "batch_size vocab_size"],
-    targets: Int[Tensor, batch_size],  # type: ignore[name-defined]
+    targets: Int[Tensor, "batch_size"],  # type: ignore[name-defined]
 ) -> Float[Tensor, ""]:
     """Given a tensor of inputs and targets, compute the average cross-entropy
     loss across examples.
@@ -524,7 +524,7 @@ def run_gradient_clipping(
 
     The gradients of the parameters (parameter.grad) should be modified in-place.
     """
-    raise NotImplementedError
+    return opt.gradient_clipping(parameters, max_l2_norm)
 
 
 def get_adamw_cls() -> Any:
