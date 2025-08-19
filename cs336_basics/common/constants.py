@@ -14,3 +14,9 @@ DEFAULT_DTYPE = "float32"
 
 DEFAULT_ROPE_THETA = 10_000
 DEFAULT_MAX_SEQ_LEN = 2048
+
+
+# Pipeline
+DEFAULT_MODEL_STATE_DICT_KEY = "model_state_dict"
+DEFAULT_OPTIMIZER_STATE_DICT_KEY = "optimizer_state_dict"
+DEFAULT_ITERATION_KEY = "iteration"
