@@ -11,8 +11,11 @@ from cs336_basics.core import loss as L, optimizer as opt
 from cs336_basics.model import transformer as tfm
 
 
-@click.command()
 # TODO(nino): update to Hydra for compositional configuration
+# TODO(nino): rewrite the validation step
+# TODO(nino): break the loop into pytorch-lightning style func pieces, a long loop is ugly... # noqa: E501
+# TODO(nino): optimize the impl of lr_schedule, it's bare to broadcast the lr to parameter groups directly in this impl     # noqa: E501
+@click.command()
 @click.option(
     "-c", "--config", type=click.Path(exists=True), help="Path to the config file"
 )
@@ -33,7 +36,7 @@ def start_training(config: str):
     model = tfm.TransformerLM(**cfg["model"])
     optimizer = opt.AdamW(model.parameters(), **cfg["optimizer"])
 
-    # Resume or train from the scratch
+    # Resume from the checkpoint
     if resume:
         ckpt_path = cfg.get("ckpt_path", None)
         if ckpt_path is None:
@@ -73,7 +76,6 @@ def start_training(config: str):
             opt.gradient_clipping(model.parameters(), **cfg["gradient_clipping"])
 
         # Update the learning rate scheduler
-        # TODO(nino): optimize the impl of lr_schedule, it's bare to broadcast the lr to parameter groups in this way     # noqa: E501
         lr = opt.lr_schedule(iter_idx=iter_idx, **cfg["lr_scheduler"])
         for p in optimizer.param_groups():
             p["lr"] = lr
