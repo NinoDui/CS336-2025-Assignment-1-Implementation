@@ -7,9 +7,11 @@ import torch
 
 from cs336_basics.common import constants as C
 
+__all__ = ["data_loading"]
+
 pair_type: TypeAlias = tuple[
-    Int[torch.Tensor, "batch_size context_length"],
-    Int[torch.Tensor, "batch_size context_length"],
+    Int[torch.Tensor, "batch_size context_length"],  # for sampled input sequence
+    Int[torch.Tensor, "batch_size context_length"],  # for next-token targets
 ]
 
 
