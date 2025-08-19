@@ -1,7 +1,8 @@
-from __future__ import annotations
+from __future__ import annotations, generator_stop
 
 from collections.abc import Iterable
 import os
+import types
 from typing import IO, Any, BinaryIO
 
 from jaxtyping import Float, Int
@@ -16,6 +17,7 @@ from cs336_basics.core import optimizer as opt
 from cs336_basics.core import lr_schedule
 from cs336_basics.model import attn
 from cs336_basics.model import transformer
+from cs336_basics import pipeline
 
 
 def run_linear(
@@ -475,7 +477,13 @@ def run_get_batch(
         is the sampled input sequences, and the second tuple item is the corresponding
         language modeling labels.
     """
-    raise NotImplementedError
+    v = pipeline.data_loading(dataset, batch_size=batch_size, context_length=context_length, device=device)
+    if isinstance(v, tuple):
+        return v
+    elif isinstance(v, types.GeneratorType):
+        return next(v)
+    else:
+        raise ValueError(f"Invalid return type: {type(v)}")
 
 
 def run_softmax(in_features: Float[Tensor, " ..."], dim: int) -> Float[Tensor, " ..."]:
