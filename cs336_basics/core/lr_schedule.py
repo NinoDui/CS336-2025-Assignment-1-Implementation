@@ -29,18 +29,7 @@ def _cosine_annealing(lr: float, iter_idx: int, **kwargs) -> float:
     if iter_idx < n_iter_warmup:
         return (iter_idx / n_iter_warmup) * lr_max
     elif n_iter_warmup <= iter_idx <= n_cosine_annealing:
-        return (
-            lr_min
-            + (lr_max - lr_min)
-            * (
-                1
-                + math.cos(
-                    math.pi
-                    * (iter_idx - n_iter_warmup)
-                    / (n_cosine_annealing - n_iter_warmup)
-                )
-            )
-            / 2
-        )
+        cosine_coeff = (iter_idx - n_iter_warmup) / (n_cosine_annealing - n_iter_warmup)
+        return lr_min + (lr_max - lr_min) * (1 + math.cos(math.pi * cosine_coeff)) / 2
     else:
         return lr_min
