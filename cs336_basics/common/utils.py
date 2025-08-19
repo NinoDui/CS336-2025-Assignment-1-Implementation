@@ -1,4 +1,4 @@
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 import functools
 
 import torch
@@ -34,3 +34,18 @@ def fp32_precision(func: Callable) -> Callable:
         return result
 
     return wrapper
+
+
+def require_param(param_names: Iterable[str]) -> Callable:
+    def decorator(func: Callable) -> Callable:
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            for p_name in param_names:
+                if p_name not in kwargs:
+                    raise ValueError(f"{p_name} is required for {func.__name__}")
+
+            return func(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
