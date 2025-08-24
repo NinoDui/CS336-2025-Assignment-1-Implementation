@@ -1,14 +1,13 @@
+from collections.abc import Iterable
 import logging
 import os
 import pathlib
+import re
 from typing import BinaryIO
-from typing import Dict
-from typing import List
 
 import click
 
-from cs336_basics.common import setup_logging
-from cs336_basics.common.types import TokenPair
+from cs336_basics.common import constants as C, setup_logging, types as T
 
 setup_logging()
 logger = logging.getLogger(__name__)
@@ -64,22 +63,65 @@ def find_chunk_boundaries(
     return sorted(set(chunk_boundaries))
 
 
+def _split(
+    text: str,
+    special_tokens: Iterable[str] | None = None,
+    delimiters: str | Iterable[str] | None = None,
+) -> list[str]:
+    if special_tokens is None:
+        special_tokens = []
+    special_tokens = [re.escape(s) for s in special_tokens]
+
+    match delimiters:
+        case str():
+            delimiters = [delimiters]
+        case Iterable():
+            if not isinstance(delimiters, list):
+                delimiters = list(delimiters)
+        case _:
+            delimiters = [C.PAT]
+    delimiters = special_tokens + delimiters
+
+    split_pattern = f"{'|'.join(delimiters)}"
+    return re.split(split_pattern, text)
+
+
 def pretoken(
-    chunk: str | bytes, special_token: List[str] | None = None
-) -> Dict[TokenPair, int]:
-    if isinstance(chunk, str):
-        chunk = chunk.encode("utf-8")
+    chunk: str | bytes,
+    special_tokens: list[str] | None = None,
+    delimiters: str | Iterable[str] | None = None,
+) -> dict[T.Token, int]:
+    """Pretoken the trunk, with
+        1) certain special tokens
+        2) the split strategies
 
-    pair_to_cnt: Dict = {}
-    for pair in zip(chunk[:-1], chunk[1:]):
-        pair_to_cnt[pair] = pair_to_cnt.get(pair, 0) + 1
-    return pair_to_cnt
+    Args:
+        chunk (str | bytes):
+            The chunk to pretokenize
+        special_tokens (List[str] | None, optional):
+            The special tokens to use.
+            Defaults to None.
+        delimiters (str | Iterable[str] | None, optional):
+            The delimiters to use, like r'xxx', '\t', <|endoftext|>
+            Defaults to PAT
+
+    Returns:
+        Dict[T.Token, int]: tokens and their frequencies
+    """
+    if isinstance(chunk, bytes):
+        chunk = chunk.decode("utf-8", errors="ignore")
+    tokens = _split(chunk, special_tokens=special_tokens, delimiters=delimiters)
+
+    token_to_cnt: dict[str, int] = {}
+    for token in tokens:
+        token_to_cnt[token] = token_to_cnt.get(token, 0) + 1
+
+    return {tuple(token.encode("utf-8")): cnt for token, cnt in token_to_cnt.items()}  # type: ignore[arg-type]
 
 
-# Usage
 def pretokenlize_in_parallel(
     filepath: str | pathlib.Path, num_processes: int = 4
-) -> Dict[TokenPair, int] | None:
+) -> dict[T.Token, int] | None:
     return None
 
 
@@ -92,10 +134,8 @@ def run_pretoken(file: str, parallel: bool, num_process: int):
         print("Pararllel")
     else:
         with open(file, "rb") as f:
-            boundaries = find_chunk_boundaries(
-                f, num_process, "<|endoftext|>".encode("utf-8")
-            )
-            for s, e in zip(boundaries[:-1], boundaries[1:]):
+            boundaries = find_chunk_boundaries(f, num_process, b"<|endoftext|>")
+            for s, e in zip(boundaries[:-1], boundaries[1:], strict=False):
                 f.seek(s)
                 chunk = f.read(e - s).decode(
                     "utf-8", errors="ignore"
