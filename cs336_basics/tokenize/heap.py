@@ -5,9 +5,7 @@ T = TypeVar("T")
 
 
 class MaxHeap(Generic[T]):
-    def __init__(
-        self, data: Iterable[T] | None = None, key: Callable[[T], Any] = lambda x: x
-    ):
+    def __init__(self, data: Iterable[T] | None = None, key: Callable[[T], Any] = lambda x: x):
         super().__init__()
 
         self._heap = []
@@ -31,13 +29,8 @@ class MaxHeap(Generic[T]):
 
     def _move_up(self, idx: int):
         parent_idx = (idx - 1) // 2
-        while idx > 0 and self._key(self._heap[idx]) > self._key(
-            self._heap[parent_idx]
-        ):
-            self._heap[idx], self._heap[parent_idx] = (
-                self._heap[parent_idx],
-                self._heap[idx],
-            )
+        while idx > 0 and self._key(self._heap[idx]) > self._key(self._heap[parent_idx]):
+            self._heap[idx], self._heap[parent_idx] = self._heap[parent_idx], self._heap[idx]
             idx = parent_idx
             parent_idx = (idx - 1) // 2
 
@@ -47,20 +40,13 @@ class MaxHeap(Generic[T]):
         right_idx = (idx << 1) + 2
 
         largest_idx = idx
-        if left_idx < n and self._key(self._heap[left_idx]) > self._key(
-            self._heap[idx]
-        ):
+        if left_idx < n and self._key(self._heap[left_idx]) > self._key(self._heap[idx]):
             largest_idx = left_idx
-        if right_idx < n and self._key(self._heap[right_idx]) > self._key(
-            self._heap[largest_idx]
-        ):
+        if right_idx < n and self._key(self._heap[right_idx]) > self._key(self._heap[largest_idx]):
             largest_idx = right_idx
 
         if largest_idx != idx:
-            self._heap[idx], self._heap[largest_idx] = (
-                self._heap[largest_idx],
-                self._heap[idx],
-            )
+            self._heap[idx], self._heap[largest_idx] = self._heap[largest_idx], self._heap[idx]
             self._move_down(largest_idx)
 
     def push(self, item: T):

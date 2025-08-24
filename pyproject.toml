@@ -58,7 +58,7 @@ log_cli_level = "WARNING"
 addopts = "-s"
 
 [tool.ruff]
-line-length = 88 # Matches Black's default
+line-length = 120
 target-version = "py311"
 # exclude = ["tests/"]
 
