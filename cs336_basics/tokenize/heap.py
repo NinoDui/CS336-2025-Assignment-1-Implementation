@@ -76,7 +76,7 @@ class MaxHeap(Generic[T]):
             self._move_down(idx)
 
     def __repr__(self) -> str:
-        return f"MaxHeap(N={len(self._heap)}, key={self._key})"
+        return f"MaxHeap(N={len(self._heap)}, data={self._heap})"
 
     def __str__(self) -> str:
         return self.__repr__()

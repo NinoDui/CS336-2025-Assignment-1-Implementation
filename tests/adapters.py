@@ -1,8 +1,7 @@
-from __future__ import annotations, generator_stop
+from __future__ import annotations
 
 from collections.abc import Iterable
 import os
-import types
 from typing import IO, Any, BinaryIO
 
 from jaxtyping import Float, Int
@@ -10,13 +9,10 @@ import numpy.typing as npt
 import torch
 from torch import Tensor
 
-from cs336_basics.core import functions as F
-from cs336_basics.core import module as M
-from cs336_basics.core import loss
-from cs336_basics.core import optimizer as opt
-from cs336_basics.model import attn
-from cs336_basics.model import transformer
 from cs336_basics import pipeline
+from cs336_basics.core import functions as F, loss, module as M, optimizer as opt
+from cs336_basics.model import attn, transformer
+from cs336_basics.tokenize import bpe
 
 
 def run_linear(
@@ -148,11 +144,14 @@ def run_multihead_self_attention(
         in_features (Float[Tensor, "... sequence_length d_in"]): Tensor to run your implementation on.
 
     Returns:
-        Float[Tensor, " ... sequence_length d_out"]: Tensor with the output of running your optimized, batched multi-headed attention
+        Float[Tensor, " ... sequence_length d_out"]:
+            Tensor with the output of running your optimized, batched multi-headed attention
         implementation with the given QKV projection weights and input features.
     """
     multihead_attn = attn.MultiHeadSelfAttention(d_model, num_heads, apply_rope=False, causal_mask=True)
-    multihead_attn.load_state_dict({"W_q.W": q_proj_weight, "W_k.W": k_proj_weight, "W_v.W": v_proj_weight, "W_o.W": o_proj_weight}, strict=False)
+    multihead_attn.load_state_dict(
+        {"W_q.W": q_proj_weight, "W_k.W": k_proj_weight, "W_v.W": v_proj_weight, "W_o.W": o_proj_weight}, strict=False
+    )
     return multihead_attn(in_features)
 
 
@@ -190,11 +189,16 @@ def run_multihead_self_attention_with_rope(
         token_positions (Int[Tensor, " ... sequence_length"] | None): Optional tensor with the positions of the tokens
 
     Returns:
-        Float[Tensor, " ... sequence_length d_out"]: Tensor with the output of running your optimized, batched multi-headed attention
+        Float[Tensor, " ... sequence_length d_out"]:
+            Tensor with the output of running your optimized, batched multi-headed attention
         implementation with the given QKV projection weights and input features.
     """
-    multihead_attn = attn.MultiHeadSelfAttention(d_model, num_heads, apply_rope=True, rope_theta=theta, rope_max_seq_len=max_seq_len, causal_mask=True)
-    multihead_attn.load_state_dict({"W_q.W": q_proj_weight, "W_k.W": k_proj_weight, "W_v.W": v_proj_weight, "W_o.W": o_proj_weight}, strict=False)
+    multihead_attn = attn.MultiHeadSelfAttention(
+        d_model, num_heads, apply_rope=True, rope_theta=theta, rope_max_seq_len=max_seq_len, causal_mask=True
+    )
+    multihead_attn.load_state_dict(
+        {"W_q.W": q_proj_weight, "W_k.W": k_proj_weight, "W_v.W": v_proj_weight, "W_o.W": o_proj_weight}, strict=False
+    )
     return multihead_attn(in_features, token_positions)
 
 
@@ -213,7 +217,8 @@ def run_rope(
         theta (float): RoPE parameter.
         max_seq_len (int): Maximum sequence length to pre-cache if your implementation does that.
         in_query_or_key (Float[Tensor, "... sequence_length d_k"]): Input tensor to run RoPE on.
-        token_positions (Int[Tensor, "... sequence_length"]): Tensor of shape (batch_size, sequence_length) with the token positions
+        token_positions (Int[Tensor, "... sequence_length"]):
+            Tensor of shape (batch_size, sequence_length) with the token positions
     Returns:
         Float[Tensor, " ... sequence_length d_k"]: Tensor with RoPEd input.
     """
@@ -291,18 +296,23 @@ def run_transformer_block(
         Float[Tensor, "batch sequence_length d_model"] Tensor with the output of
         running the Transformer block on the input features while using RoPE.
     """
-    block = transformer.TransformerBlock(d_model, num_heads, d_ff, causal_mask=True, apply_rope=True, rope_max_seq_len=max_seq_len, rope_theta=theta)
-    block.load_state_dict({
-        "attn.W_q.W": weights["attn.q_proj.weight"],
-        "attn.W_k.W": weights["attn.k_proj.weight"],
-        "attn.W_v.W": weights["attn.v_proj.weight"],
-        "attn.W_o.W": weights["attn.output_proj.weight"],
-        "attn_norm.G": weights["ln1.weight"],
-        "ff.W1.W": weights["ffn.w1.weight"],
-        "ff.W2.W": weights["ffn.w2.weight"],
-        "ff.W3.W": weights["ffn.w3.weight"],
-        "ff_norm.G": weights["ln2.weight"],
-    }, strict=False)
+    block = transformer.TransformerBlock(
+        d_model, num_heads, d_ff, causal_mask=True, apply_rope=True, rope_max_seq_len=max_seq_len, rope_theta=theta
+    )
+    block.load_state_dict(
+        {
+            "attn.W_q.W": weights["attn.q_proj.weight"],
+            "attn.W_k.W": weights["attn.k_proj.weight"],
+            "attn.W_v.W": weights["attn.v_proj.weight"],
+            "attn.W_o.W": weights["attn.output_proj.weight"],
+            "attn_norm.G": weights["ln1.weight"],
+            "ff.W1.W": weights["ffn.w1.weight"],
+            "ff.W2.W": weights["ffn.w2.weight"],
+            "ff.W3.W": weights["ffn.w3.weight"],
+            "ff_norm.G": weights["ln2.weight"],
+        },
+        strict=False,
+    )
     return block(in_features)
 
 
@@ -378,8 +388,9 @@ def run_transformer_lm(
             - `lm_head.weight`
                 Weights of the language model output embedding.
                 Shape is (vocab_size, d_model).
-        in_indices (Int[Tensor, "batch_size sequence_length"]) Tensor with input indices to run the language model on. Shape is (batch_size, sequence_length), where
-            `sequence_length` is at most `context_length`.
+        in_indices (Int[Tensor, "batch_size sequence_length"])
+            Tensor with input indices to run the language model on.
+            Shape is (batch_size, sequence_length), where `sequence_length` is at most `context_length`.
 
     Returns:
         Float[Tensor, "batch_size sequence_length vocab_size"]: Tensor with the predicted unnormalized
@@ -397,23 +408,29 @@ def run_transformer_lm(
         causal_mask=True,
         rope_theta=rope_theta,
     )
-    lm.load_state_dict({
-        "token_emb.vocab": weights["token_embeddings.weight"],
-        "final_norm.G": weights["ln_final.weight"],
-        "outptu_emb.W": weights["lm_head.weight"],
-    }, strict=False)
+    lm.load_state_dict(
+        {
+            "token_emb.vocab": weights["token_embeddings.weight"],
+            "final_norm.G": weights["ln_final.weight"],
+            "outptu_emb.W": weights["lm_head.weight"],
+        },
+        strict=False,
+    )
     for i in range(num_layers):
-        lm.tfm_layers[i].load_state_dict({
-            "attn.W_q.W": weights[f"layers.{i}.attn.q_proj.weight"],
-            "attn.W_k.W": weights[f"layers.{i}.attn.k_proj.weight"],
-            "attn.W_v.W": weights[f"layers.{i}.attn.v_proj.weight"],
-            "attn.W_o.W": weights[f"layers.{i}.attn.output_proj.weight"],
-            "attn_norm.G": weights[f"layers.{i}.ln1.weight"],
-            "ff.W1.W": weights[f"layers.{i}.ffn.w1.weight"],
-            "ff.W2.W": weights[f"layers.{i}.ffn.w2.weight"],
-            "ff.W3.W": weights[f"layers.{i}.ffn.w3.weight"],
-            "ff_norm.G": weights[f"layers.{i}.ln2.weight"],
-        }, strict=False)
+        lm.tfm_layers[i].load_state_dict(
+            {
+                "attn.W_q.W": weights[f"layers.{i}.attn.q_proj.weight"],
+                "attn.W_k.W": weights[f"layers.{i}.attn.k_proj.weight"],
+                "attn.W_v.W": weights[f"layers.{i}.attn.v_proj.weight"],
+                "attn.W_o.W": weights[f"layers.{i}.attn.output_proj.weight"],
+                "attn_norm.G": weights[f"layers.{i}.ln1.weight"],
+                "ff.W1.W": weights[f"layers.{i}.ffn.w1.weight"],
+                "ff.W2.W": weights[f"layers.{i}.ffn.w2.weight"],
+                "ff.W3.W": weights[f"layers.{i}.ffn.w3.weight"],
+                "ff_norm.G": weights[f"layers.{i}.ln2.weight"],
+            },
+            strict=False,
+        )
     return lm(in_indices)
 
 
@@ -497,7 +514,7 @@ def run_softmax(in_features: Float[Tensor, " ..."], dim: int) -> Float[Tensor, "
 
 def run_cross_entropy(
     inputs: Float[Tensor, "batch_size vocab_size"],
-    targets: Int[Tensor, "batch_size"],  # type: ignore[name-defined]
+    targets: Int[Tensor, "... batch_size"],  # type: ignore[name-defined]
 ) -> Float[Tensor, ""]:
     """Given a tensor of inputs and targets, compute the average cross-entropy
     loss across examples.
@@ -514,9 +531,7 @@ def run_cross_entropy(
     return loss.cross_entropy_loss(inputs, targets)
 
 
-def run_gradient_clipping(
-    parameters: Iterable[torch.nn.Parameter], max_l2_norm: float
-) -> None:
+def run_gradient_clipping(parameters: Iterable[torch.nn.Parameter], max_l2_norm: float) -> None:
     """Given a set of parameters, clip their combined gradients to have l2 norm at most max_l2_norm.
 
     Args:
@@ -560,7 +575,14 @@ def run_get_lr_cosine_schedule(
     Returns:
         Learning rate at the given iteration under the specified schedule.
     """
-    return opt.lr_schedule("cosine_annealing", max_learning_rate, it, lr_min=min_learning_rate, n_iter_warmup=warmup_iters, n_cosine_annealing=cosine_cycle_iters)
+    return opt.lr_schedule(
+        "cosine_annealing",
+        max_learning_rate,
+        it,
+        lr_min=min_learning_rate,
+        n_iter_warmup=warmup_iters,
+        n_cosine_annealing=cosine_cycle_iters,
+    )
 
 
 def run_save_checkpoint(
@@ -577,7 +599,8 @@ def run_save_checkpoint(
         optimizer (torch.optim.Optimizer): Serialize the state of this optimizer.
         iteration (int): Serialize this value, which represents the number of training iterations
             we've completed.
-        out (str | os.PathLike | BinaryIO | IO[bytes]): Path or file-like object to serialize the model, optimizer, and iteration to.
+        out (str | os.PathLike | BinaryIO | IO[bytes]):
+            Path or file-like object to serialize the model, optimizer, and iteration to.
     """
     pipeline.save_checkpoint(model, optimizer, iteration, out)
 
@@ -653,4 +676,4 @@ def run_train_bpe(
                 representing that <token1> was merged with <token2>.
                 Merges are ordered by order of creation.
     """
-    raise NotImplementedError
+    return bpe.train_bpe(input_path, vocab_size, special_tokens=special_tokens, **kwargs)  # type: ignore[arg-type]

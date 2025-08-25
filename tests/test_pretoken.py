@@ -9,11 +9,9 @@ RESOURCES = {w: idx + 1 for idx, w in enumerate(WORD_ELEMENTS)}
 DELIMITERS = [" ", "<|endoftext|>"]
 
 
-def _generate_test_case(
-    num_cases: int, *, delimiters: list[str]
-) -> list[tuple[str, dict[tuple[int, ...], int]]]:
+def _generate_test_case(num_cases: int, *, delimiters: list[str]) -> list[tuple[str, dict[tuple[bytes, ...], int]]]:
     test_cases, all_words = [], []
-    expected_counts = {tuple(w.encode("utf-8")): cnt for w, cnt in RESOURCES.items()}
+    expected_counts = {tuple(x.encode("utf-8") for x in w): cnt for w, cnt in RESOURCES.items()}
 
     for w, cnt in RESOURCES.items():
         all_words += [w] * cnt
@@ -32,13 +30,9 @@ def _generate_test_case(
     return test_cases
 
 
-@pytest.mark.parametrize(
-    "test_case, expected_counts", _generate_test_case(5, delimiters=DELIMITERS)
-)
+@pytest.mark.parametrize("test_case, expected_counts", _generate_test_case(5, delimiters=DELIMITERS))
 def test_pretoken(test_case: str, expected_counts: dict[str, int]):
     assert (
-        pretokenization.pretoken(
-            test_case, special_tokens=[DELIMITERS[-1]], delimiters=DELIMITERS[:-1]
-        )
+        pretokenization.pretoken(test_case, special_tokens=[DELIMITERS[-1]], delimiters=DELIMITERS[:-1])
         == expected_counts
     )

@@ -1,0 +1,11 @@
+vocab_size: 270
+special_tokens:
+    - <|startoftext|>
+    - <|endoftext|>
+    - <|unk|>
+    - <|pad|>
+    - <|mask|>
+    - <|cls|>
+    - <|sep|>
+    - <|tab|>
+    - <|newline|>
