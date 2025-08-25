@@ -83,7 +83,8 @@ def _split(text: str, split_tokens: list[str] | None = None, reserve: bool = Tru
 
 
 def _encode(token: str) -> T.BytesToken:
-    return tuple(x.encode("utf-8") for x in token)
+    # return tuple(x.encode("utf-8") for x in token)
+    return tuple(bytes([b]) for b in token.encode("utf-8"))
 
 
 def _pretoken_with_delimiters(
