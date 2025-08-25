@@ -84,6 +84,9 @@ def _split(text: str, split_tokens: list[str] | None = None, reserve: bool = Tru
 
 def _encode(token: str) -> T.BytesToken:
     # return tuple(x.encode("utf-8") for x in token)
+    # treat multiple bytes as one token
+
+    # ensure each bytes is converted to a single byte
     return tuple(bytes([b]) for b in token.encode("utf-8"))
 
 
