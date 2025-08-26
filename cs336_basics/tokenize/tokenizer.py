@@ -1,5 +1,4 @@
 from collections.abc import Iterable
-import itertools
 
 import regex as re
 
@@ -41,15 +40,12 @@ class Tokenizer:
         return cls(vocab, merges, special_tokens=special_tokens)
 
     def encode(self, text: str) -> list[int]:
-        token_sections, _ = pre.pretoken(text, special_tokens=self._special_tokens, split_pattern=re.compile(C.PAT))
+        raw_tokens = pre.pretoken(text, special_tokens=self._special_tokens, split_pattern=re.compile(C.PAT))
 
         result = []
-        for seg in token_sections:
-            result.extend(self._encode_tokens(seg))
+        for token in raw_tokens:
+            result.extend(self._token_to_ids(token, requie_merge=True))
         return result
-
-    def _encode_tokens(self, tokens: list[T.BytesToken]) -> list[int]:
-        return list(itertools.chain.from_iterable(self._token_to_ids(token) for token in tokens))
 
     def _token_to_ids(self, token: T.BytesToken, *, requie_merge: bool = True) -> list[int]:
         if requie_merge:

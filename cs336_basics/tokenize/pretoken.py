@@ -114,7 +114,7 @@ def pretoken(
     chunk: str | bytes,
     special_tokens: Iterable[str] | None = None,
     split_pattern: str | Iterable[str] | re.Pattern | None = None,
-) -> tuple[list[list[T.BytesToken]], dict[int, str]]:
+) -> list[T.BytesToken]:
     """Pretoken the text/bytes chunk to bytes tokens.
 
     Args:
@@ -125,29 +125,26 @@ def pretoken(
             The pattern to match the text/bytes chunk. Defaults to None.
 
     Returns:
-        List[T.BytesToken]: The bytes tokens, splited by special tokens
+        list[T.BytesToken]: The bytes tokens, splited by special tokens
     """
     if isinstance(chunk, bytes):
         chunk = chunk.decode("utf-8", errors="ignore")
 
     if special_tokens is None:
-        return [_text_to_tokens(chunk, split_pattern)], {}
+        return _text_to_tokens(chunk, split_pattern)
     elif not isinstance(special_tokens, set):
         # dict.fromkeys as a walkaround for ordered set, whose values are set to None by default # noqa: E501
         special_tokens = dict.fromkeys(sorted(special_tokens, key=len, reverse=True))
 
     segments: list[str] = _split(chunk, split_tokens=special_tokens, reserve=True, keep_split_tokens=True)
-
-    pretokens: list[list[T.BytesToken]] = []
-    sep_position: dict[int, str] = {}
-    for idx, segment in enumerate(segments):
+    pretokens: list[T.BytesToken] = []
+    for segment in segments:
         if segment in special_tokens:
             # special token, unseparatable, e.g, [(b'special_token', )]
-            pretokens.append([io.encode(segment, unseparable=True)])
-            sep_position[idx] = segment
+            pretokens.append(io.encode(segment, unseparable=True))
         else:
-            pretokens.append(_text_to_tokens(segment, split_pattern))
-    return pretokens, sep_position
+            pretokens.extend(_text_to_tokens(segment, split_pattern))
+    return pretokens
 
 
 @overload
