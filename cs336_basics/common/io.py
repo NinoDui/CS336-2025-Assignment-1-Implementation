@@ -1,3 +1,4 @@
+from collections.abc import Callable
 import json
 import pathlib
 from typing import IO, BinaryIO, overload
@@ -42,3 +43,41 @@ def load_config(path: T.FileType) -> dict:
             return json.load(f)
         else:
             raise ValueError(f"Unsupported file extension: {path.suffix}")
+
+
+load_dict: Callable = load_config
+load_vocab: Callable = load_config
+
+
+@overload
+def load_text(path: T.PathLike) -> str: ...
+
+
+@overload
+def load_text(path: BinaryIO) -> str: ...
+
+
+@overload
+def load_text(path: IO[bytes]) -> str: ...
+
+
+def load_text(path: T.FileType) -> str:
+    if isinstance(path, BinaryIO | IO):
+        return path.read().decode("utf-8")
+    else:
+        with open(path, encoding="utf-8") as f:
+            return f.read()
+
+
+load_sequence: Callable = load_text
+
+
+def encode(token: str, *, unseparable: bool = False) -> T.BytesToken:
+    # treat multiple bytes as one token
+    # return tuple(x.encode("utf-8") for x in token)
+
+    if unseparable:
+        return (token.encode("utf-8"),)
+
+    # ensure each bytes is converted to a single byte
+    return tuple(bytes([b]) for b in token.encode("utf-8"))

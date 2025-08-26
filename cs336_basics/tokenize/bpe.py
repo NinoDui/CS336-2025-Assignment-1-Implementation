@@ -1,10 +1,11 @@
 import logging
 
 import click
+import regex as re
 
 from cs336_basics.common import constants as C, io, types as T
 from cs336_basics.common.logging import setup_logging
-from cs336_basics.tokenize import pretokenization as pre
+from cs336_basics.tokenize import pretoken as pre
 from cs336_basics.tokenize.heap import MaxHeap
 
 setup_logging()
@@ -19,7 +20,9 @@ def train_bpe(input_path: str, vocab_size: int, special_tokens: list[str], **kwa
 
     # Calculate the frequency of each token
     with open(input_path, "rb") as f:
-        token_freq = pre.pretoken(f.read(), special_tokens=special_tokens, match_patten=C.PAT, **kwargs)
+        token_freq = pre.pretoken_and_count(
+            f.read(), special_tokens=special_tokens, split_pattern=re.compile(C.PAT), **kwargs
+        )
     pair_to_cnt, pair_to_token = _establish_pair_cache(token_freq)
 
     while len(vocab) < vocab_size:

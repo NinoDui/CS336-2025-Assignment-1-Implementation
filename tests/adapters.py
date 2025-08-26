@@ -12,7 +12,7 @@ from torch import Tensor
 from cs336_basics import pipeline
 from cs336_basics.core import functions as F, loss, module as M, optimizer as opt
 from cs336_basics.model import attn, transformer
-from cs336_basics.tokenize import bpe
+from cs336_basics.tokenize import bpe, tokenizer as tk
 
 
 def run_linear(
@@ -646,7 +646,7 @@ def get_tokenizer(
     Returns:
         A BPE tokenizer that uses the provided vocab, merges, and special tokens.
     """
-    raise NotImplementedError
+    return tk.Tokenizer(vocab, merges, special_tokens=special_tokens)
 
 
 def run_train_bpe(
