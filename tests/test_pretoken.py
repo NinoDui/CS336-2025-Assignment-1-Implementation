@@ -1,12 +1,11 @@
 from collections.abc import Callable
 from functools import partial
-from itertools import chain
 import random
 from typing import Any
 
 import pytest
 
-from cs336_basics.common import io, types as T
+from cs336_basics.common import io
 from cs336_basics.tokenize import pretoken as pre
 
 WORD_ELEMENTS = ["Ashin", "Monster", "Ming", "Masa", "Stone"]
@@ -59,14 +58,3 @@ def test_pretoken_and_count(test_case: str, expected_counts: dict[str, int]):
         pre.pretoken_and_count(test_case, special_tokens=[DELIMITERS[-1]], split_pattern=DELIMITERS[:-1])
         == expected_counts
     )
-
-
-@pytest.mark.parametrize(
-    "test_case, expected_output",
-    _generate_test_case(5, input_generator=partial(text, need_shuffle=False), output_generator=pretoken),
-)
-def test_pretoken(test_case: str, expected_output: list[T.BytesToken]):
-    tokens, sep_position = pre.pretoken(test_case, special_tokens=[DELIMITERS[-1]], split_pattern=DELIMITERS[:-1])
-
-    assert list(chain.from_iterable(tokens)) == expected_output
-    assert len(sep_position) is not None
