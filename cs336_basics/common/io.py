@@ -1,4 +1,4 @@
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 import json
 import pathlib
 from typing import IO, BinaryIO, overload
@@ -70,6 +70,26 @@ def load_text(path: T.FileType) -> str:
 
 
 load_sequence: Callable = load_text
+
+
+def save_json(data: dict, path: T.PathLike):
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=4)
+
+
+save_dict: Callable = save_json
+
+
+def save_text(data: Iterable[str | bytes], path: T.PathLike):
+    with open(path, "w", encoding="utf-8") as f:
+        for line in data:
+            if isinstance(line, bytes):
+                line = line.decode("utf-8", errors="ignore")
+            f.write(line)
+            f.write("\n")
+
+
+save_sequence: Callable = save_text
 
 
 def encode(token: str, *, unseparable: bool = False) -> T.BytesToken:

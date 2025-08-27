@@ -1,14 +1,11 @@
 import logging
 
-import click
 import regex as re
 
-from cs336_basics.common import constants as C, io, types as T
-from cs336_basics.common.logging import setup_logging
+from cs336_basics.common import constants as C, types as T
 from cs336_basics.tokenize import pretoken as pre
 from cs336_basics.tokenize.heap import MaxHeap
 
-setup_logging()
 logger = logging.getLogger(__name__)
 
 
@@ -16,13 +13,22 @@ def train_bpe(input_path: str, vocab_size: int, special_tokens: list[str], **kwa
     vocab = {i: bytes([i]) for i in range(C.DEFAULT_BYTE_SIZE)}
     for delta, special_token in enumerate(special_tokens):
         vocab[C.DEFAULT_BYTE_SIZE + delta] = special_token.encode("utf-8")
+    logger.info(f"Initialized vocab with {len(vocab)} tokens")
     merges = []
 
     # Calculate the frequency of each token
-    with open(input_path, "rb") as f:
-        token_freq = pre.pretoken_and_count(
-            f.read(), special_tokens=special_tokens, split_pattern=re.compile(C.PAT), **kwargs
+    num_processes = kwargs.get("num_processes", 1)
+    if num_processes > 1:
+        token_freq = pre.pretoken_and_count_in_parallel(
+            input_path, special_tokens=special_tokens, split_pattern=re.compile(C.PAT), num_processes=num_processes
         )
+    else:
+        # TODO: align the API behavior with parallel mode
+        with open(input_path, "rb") as f:
+            token_freq = pre.pretoken_and_count(
+                f.read(), special_tokens=special_tokens, split_pattern=re.compile(C.PAT)
+            )
+
     pair_to_cnt, pair_to_token = _establish_pair_cache(token_freq)
 
     while len(vocab) < vocab_size:
@@ -102,18 +108,3 @@ def _merge_pair_in_token(token: T.BytesToken, pair: T.BytesPair, repr: bytes | N
             elems.append(token[idx])
             idx += 1
     return tuple(elems)
-
-
-@click.command()
-@click.option("-i", "--input_path", type=str, required=True)
-@click.option("-c", "--config_path", type=str, required=True)
-def _run_bpe(input_path: str, config_path: str):
-    config = io.load_config(config_path)
-    vocab, merges = train_bpe(input_path, **config)
-
-    print(vocab)
-    print(merges)
-
-
-if __name__ == "__main__":
-    _run_bpe()

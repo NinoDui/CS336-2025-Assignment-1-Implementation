@@ -1,0 +1,8 @@
+train_bpe:
+    input_path: "data/TinyStoriesV2-GPT4-train.txt"
+    vocab_size: 10_000
+    special_tokens:
+        - <|endoftext|>
+    num_processes: 8
+vocab_path: "data/output/TinyStoriesV2-GPT4-train-vocab.txt"
+merges_path: "data/output/TinyStoriesV2-GPT4-train-merges.txt"

@@ -3,13 +3,11 @@ import concurrent.futures as cf
 import logging
 import multiprocessing as mp
 
-import click
 import regex as re
 
-from cs336_basics.common import constants as C, io, setup_logging, types as T
+from cs336_basics.common import constants as C, io, types as T
 from cs336_basics.tokenize import utils
 
-setup_logging()
 logger = logging.getLogger(__name__)
 
 __all__ = ["pretoken_and_count", "pretoken", "pretoken_and_count_in_parallel"]
@@ -162,31 +160,3 @@ def _read(file_path: str, split_special_token: str | bytes) -> Generator[bytes]:
                 )
 
     logger.info(f"[{mp.current_process().name} - Reader] Finished reading {byte_cnt} bytes from file {file_path}")
-
-
-@click.command()
-@click.option("--config-path", "-c", required=True, help="configuration file path")
-def _run_pretoken(config_path: str):
-    cfg: dict = io.load_config(config_path)
-    parallel = cfg.pop("parallel", False)
-    file = cfg.pop("file")
-    num_processes = cfg.pop("num_processes", C.DEFAULT_MAX_NUM_PROCESSES)
-    num_processes = max(1, min(num_processes, C.DEFAULT_MAX_NUM_PROCESSES))
-
-    logger.info(
-        f"Tokenizing {file} with {num_processes} processes in {'parallel' if parallel else 'serial'} mode, set by {config_path}"  # noqa: E501
-    )
-
-    if parallel:
-        result = pretoken_and_count_in_parallel(file, num_processes=num_processes, **cfg)
-    else:
-        with open(file, "rb") as f:
-            result = pretoken_and_count(f.read(), **cfg)
-
-    for idx, (token, cnt) in enumerate(result.items()):
-        if idx % 100 == 0:
-            print(f"{token}: {cnt}")
-
-
-if __name__ == "__main__":
-    _run_pretoken()
