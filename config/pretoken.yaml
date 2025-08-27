@@ -1,6 +1,5 @@
-file: "data/TinyStoriesV2-GPT4-valid.txt"
+file: "tests/fixtures/tinystories_sample_5M.txt"
 parallel: true
 special_tokens:
     - <|endoftext|>
-num_processes: 16
-desired_num_chunks: 100
+num_processes: 1
