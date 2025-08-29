@@ -55,12 +55,28 @@ def require_param(param_names: Iterable[str]) -> Callable:
     return decorator
 
 
-def timeit(func: Callable) -> Callable:
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        start_time = time.time()
-        result = func(*args, **kwargs)
-        logger.info(f"[{func.__name__}] Time taken: {time.time() - start_time} seconds")
-        return result
+def timeit(log_level: int = logging.INFO) -> Callable:
+    def decorator(func: Callable) -> Callable:
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            start_time = time.time()
+            result = func(*args, **kwargs)
 
-    return wrapper
+            match log_level:
+                case logging.DEBUG:
+                    logger.debug(f"[{func.__name__}] Time taken: {time.time() - start_time} seconds")
+                case logging.INFO:
+                    logger.info(f"[{func.__name__}] Time taken: {time.time() - start_time} seconds")
+                case logging.WARNING:
+                    logger.warning(f"[{func.__name__}] Time taken: {time.time() - start_time} seconds")
+                case logging.ERROR:
+                    logger.error(f"[{func.__name__}] Time taken: {time.time() - start_time} seconds")
+                case logging.CRITICAL:
+                    logger.critical(f"[{func.__name__}] Time taken: {time.time() - start_time} seconds")
+                case _:
+                    raise ValueError(f"Invalid log level: {log_level}")
+            return result
+
+        return wrapper
+
+    return decorator

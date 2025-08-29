@@ -83,12 +83,25 @@ def save_json(
 save_dict: Callable = save_json
 
 
-def save_text(data: Iterable[str | bytes], path: T.PathLike, save_bytes: bool = False):
-    mode = "wb" if save_bytes else "w"
-    with open(path, mode=mode, encoding="utf-8") as f:
-        for line in data:
-            f.write(line)
-            f.write("\n")
+@overload
+def save_text(data: Iterable[str], path: T.PathLike, save_bytes: bool = False): ...
+
+
+@overload
+def save_text(data: Iterable[bytes], path: T.PathLike, save_bytes: bool = False): ...
+
+
+def save_text(data: Iterable[str] | Iterable[bytes], path: T.PathLike, save_bytes: bool = False):
+    if save_bytes:
+        with open(path, "wb") as f:
+            for line in data:
+                line_bytes = line.encode("utf-8") if isinstance(line, str) else line
+                f.write(line_bytes + b"\n")
+    else:
+        with open(path, "w", encoding="utf-8") as f:
+            for line in data:
+                line_str = line.decode("utf-8", errors="replace") if isinstance(line, bytes) else line
+                f.write(line_str + "\n")
 
 
 save_sequence: Callable = save_text

@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 __all__ = ["pretoken_and_count", "pretoken", "pretoken_and_count_in_parallel"]
 
 
-@helper.timeit
+@helper.timeit(log_level=logging.DEBUG)
 def pretoken_and_count(
     chunk: str | bytes,
     special_tokens: Iterable[str] | None = None,
@@ -36,9 +36,10 @@ def pretoken_and_count(
     return token_to_cnt
 
 
-@helper.timeit
+@helper.timeit(log_level=logging.DEBUG)
 def pretoken(
     chunk: str | bytes,
+    *,
     special_tokens: Iterable[str] | None = None,
     split_pattern: str | Iterable[str] | re.Pattern | None = None,
 ) -> list[T.BytesToken]:
@@ -74,7 +75,7 @@ def pretoken(
     return pretokens
 
 
-@helper.timeit
+@helper.timeit()
 def pretoken_and_count_in_parallel(
     filepath: str,
     *,

@@ -9,7 +9,7 @@ from cs336_basics.tokenize.heap import MaxHeap
 logger = logging.getLogger(__name__)
 
 
-@helper.timeit
+@helper.timeit(log_level=logging.INFO)
 def train_bpe(input_path: str, vocab_size: int, special_tokens: list[str], **kwargs) -> tuple[T.VocabType, T.MergeType]:
     vocab = {i: bytes([i]) for i in range(C.DEFAULT_BYTE_SIZE)}
     for delta, special_token in enumerate(special_tokens):
