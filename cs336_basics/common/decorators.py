@@ -1,7 +1,11 @@
 from collections.abc import Callable, Iterable
 import functools
+import logging
+import time
 
 import torch
+
+logger = logging.getLogger(__name__)
 
 
 def fp32_precision(func: Callable) -> Callable:
@@ -49,3 +53,14 @@ def require_param(param_names: Iterable[str]) -> Callable:
         return wrapper
 
     return decorator
+
+
+def timeit(func: Callable) -> Callable:
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        result = func(*args, **kwargs)
+        logger.info(f"[{func.__name__}] Time taken: {time.time() - start_time} seconds")
+        return result
+
+    return wrapper

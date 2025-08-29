@@ -72,7 +72,10 @@ def load_text(path: T.FileType) -> str:
 load_sequence: Callable = load_text
 
 
-def save_json(data: dict, path: T.PathLike):
+def save_json(
+    data: dict,
+    path: T.PathLike,
+):
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4)
 
@@ -80,11 +83,10 @@ def save_json(data: dict, path: T.PathLike):
 save_dict: Callable = save_json
 
 
-def save_text(data: Iterable[str | bytes], path: T.PathLike):
-    with open(path, "w", encoding="utf-8") as f:
+def save_text(data: Iterable[str | bytes], path: T.PathLike, save_bytes: bool = False):
+    mode = "wb" if save_bytes else "w"
+    with open(path, mode=mode, encoding="utf-8") as f:
         for line in data:
-            if isinstance(line, bytes):
-                line = line.decode("utf-8", errors="ignore")
             f.write(line)
             f.write("\n")
 

@@ -3,10 +3,8 @@ import logging
 import click
 
 from cs336_basics.common import constants as C, io
-from cs336_basics.common.logging import setup_logging
-from cs336_basics.tokenize import bpe, pretoken as pre
+from cs336_basics.tokenize import bpe, pretoken as pre, tokenizer as tk
 
-setup_logging()
 logger = logging.getLogger(__name__)
 
 
@@ -23,10 +21,17 @@ def train_bpe(config_path: str):
     logger.info(f"Training BPE with config: {config}")
     vocab, merges = bpe.train_bpe(**config["train_bpe"])
 
-    vocab_for_write = {k: v.decode("utf-8", errors="ignore") for k, v in vocab.items()}
+    def _decode(x: bytes) -> str:
+        try:
+            return x.decode("utf-8", errors="strict")
+        except UnicodeDecodeError:
+            return x.decode("latin-1", errors="ignore")
+
+    vocab_for_write = {k: _decode(v) for k, v in vocab.items()}
     io.save_dict(vocab_for_write, config["vocab_path"])
-    merges_for_write = map(lambda x: b" ".join(x).decode("utf-8", errors="ignore"), merges)
-    io.save_sequence(merges_for_write, config["merges_path"])
+
+    merges_for_write = map(lambda x: b" ".join(x), merges)
+    io.save_sequence(merges_for_write, config["merges_path"], save_bytes=True)
 
 
 @cli.command()
@@ -51,6 +56,16 @@ def pretokenize(config_path: str):
     for idx, (token, cnt) in enumerate(result.items()):
         if idx % 100 == 0:
             print(f"{token}: {cnt}")
+
+
+@cli.command()
+@click.option("-c", "--config_path", type=str, required=True)
+def tokenize(config_path: str):
+    cfg: dict = io.load_config(config_path)
+    logger.info(f"Tokenizing with config: {cfg}")
+
+    tokenizer = tk.Tokenizer.from_file(**cfg)
+    print(tokenizer.encode("Hello, world!"))
 
 
 if __name__ == "__main__":

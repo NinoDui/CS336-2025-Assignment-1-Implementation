@@ -5,7 +5,7 @@ import multiprocessing as mp
 
 import regex as re
 
-from cs336_basics.common import constants as C, io, types as T
+from cs336_basics.common import constants as C, decorators as helper, io, types as T
 from cs336_basics.tokenize import utils
 
 logger = logging.getLogger(__name__)
@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 __all__ = ["pretoken_and_count", "pretoken", "pretoken_and_count_in_parallel"]
 
 
+@helper.timeit
 def pretoken_and_count(
     chunk: str | bytes,
     special_tokens: Iterable[str] | None = None,
@@ -30,9 +31,12 @@ def pretoken_and_count(
     for segment in segments:
         for token in utils.text_to_tokens(segment, split_pattern):
             token_to_cnt[token] = token_to_cnt.get(token, 0) + 1
+
+    logger.debug(f"[{mp.current_process().name} - Pretoken] Pretoken and update {len(token_to_cnt)} tokens")
     return token_to_cnt
 
 
+@helper.timeit
 def pretoken(
     chunk: str | bytes,
     special_tokens: Iterable[str] | None = None,
@@ -70,6 +74,7 @@ def pretoken(
     return pretokens
 
 
+@helper.timeit
 def pretoken_and_count_in_parallel(
     filepath: str,
     *,
@@ -155,8 +160,10 @@ def _read(file_path: str, split_special_token: str | bytes) -> Generator[bytes]:
                 # monitor status
                 chunk_idx += 1
                 byte_cnt += len(chunk)
-                logger.debug(
-                    f"[{mp.current_process().name} - Reader] Read {chunk_idx + 1}th chunks, {len(chunk)} bytes"
-                )
+
+                if chunk_idx % 1_000_000 == 0:
+                    logger.info(
+                        f"[{mp.current_process().name} - Reader] Read {chunk_idx + 1}th chunks, {len(chunk)} bytes"
+                    )
 
     logger.info(f"[{mp.current_process().name} - Reader] Finished reading {byte_cnt} bytes from file {file_path}")

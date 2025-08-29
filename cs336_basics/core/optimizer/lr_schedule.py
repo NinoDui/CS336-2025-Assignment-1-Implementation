@@ -1,7 +1,7 @@
 import logging
 import math
 
-from cs336_basics.common import utils
+from cs336_basics.common import decorators as helper
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +19,7 @@ def lr_schedule(name: str, lr: float, iter_idx: int = 0, **kwargs) -> float:
             return lr
 
 
-@utils.require_param(["lr_min", "n_iter_warmup", "n_cosine_annealing"])
+@helper.require_param(["lr_min", "n_iter_warmup", "n_cosine_annealing"])
 def _cosine_annealing(lr: float, iter_idx: int, **kwargs) -> float:
     lr_max = lr
     lr_min = kwargs["lr_min"]

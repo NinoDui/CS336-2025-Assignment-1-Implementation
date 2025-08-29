@@ -4,5 +4,5 @@ train_bpe:
     special_tokens:
         - <|endoftext|>
     num_processes: 8
-vocab_path: "data/output/TinyStoriesV2-GPT4-train-vocab.txt"
+vocab_path: "data/output/TinyStoriesV2-GPT4-train-vocab.json"
 merges_path: "data/output/TinyStoriesV2-GPT4-train-merges.txt"

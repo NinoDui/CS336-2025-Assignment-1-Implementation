@@ -1,0 +1,43 @@
+resume: false
+enable_gradient_clipping: true
+valid_interval: 50
+save_interval: 100
+max_iterations: 10000
+
+model:
+  vocab_size: 10_000
+  context_length: 56
+  d_model: 256
+  num_layers: 12
+  num_heads: 8
+  d_ff: 1024
+  rope_theta: 10000.0
+  apply_rope: true
+  causal_mask: true
+
+optimizer:
+  lr: 1e-3
+  betas: [0.9, 0.999]
+  eps: 1e-8
+  lambda_weight_decay: 0.01
+
+gradient_clipping:
+  max_l2_norm: 1.0
+
+lr_scheduler:
+  name: "cosine_annealing"
+  lr: 1e-3  # max_learning_rate
+  lr_min: 1e-4  # min_learning_rate
+  n_iter_warmup: 1_000
+  n_cosine_annealing: 10_000
+
+wandb:
+  project: "cs336-basics"
+  name: "tinystories-train"
+
+dataset:
+  batch_size: 16
+  context_length: 56
+
+checkpoint:
+  out: "out/checkpoints"

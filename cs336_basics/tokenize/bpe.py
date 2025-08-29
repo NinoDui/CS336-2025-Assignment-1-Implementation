@@ -2,13 +2,14 @@ import logging
 
 import regex as re
 
-from cs336_basics.common import constants as C, types as T
+from cs336_basics.common import constants as C, decorators as helper, types as T
 from cs336_basics.tokenize import pretoken as pre
 from cs336_basics.tokenize.heap import MaxHeap
 
 logger = logging.getLogger(__name__)
 
 
+@helper.timeit
 def train_bpe(input_path: str, vocab_size: int, special_tokens: list[str], **kwargs) -> tuple[T.VocabType, T.MergeType]:
     vocab = {i: bytes([i]) for i in range(C.DEFAULT_BYTE_SIZE)}
     for delta, special_token in enumerate(special_tokens):
@@ -29,6 +30,7 @@ def train_bpe(input_path: str, vocab_size: int, special_tokens: list[str], **kwa
                 f.read(), special_tokens=special_tokens, split_pattern=re.compile(C.PAT)
             )
 
+    logger.info(f"After Pretokenization, achieved {len(token_freq)} tokens with their frequencies.")
     pair_to_cnt, pair_to_token = _establish_pair_cache(token_freq)
 
     while len(vocab) < vocab_size:

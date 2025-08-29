@@ -1,6 +1,6 @@
 import torch
 
-from cs336_basics.common import constants as C, utils
+from cs336_basics.common import constants as C, decorators as helper
 
 
 class RMSNorm(torch.nn.Module):
@@ -28,11 +28,9 @@ class RMSNorm(torch.nn.Module):
         self.device = device if device is not None else torch.device(C.DEFAULT_DEVICE)
         self.dtype = dtype if dtype is not None else torch.float32
 
-        self.G = torch.nn.Parameter(
-            torch.ones(d_model, device=self.device, dtype=self.dtype)
-        )
+        self.G = torch.nn.Parameter(torch.ones(d_model, device=self.device, dtype=self.dtype))
 
-    @utils.fp32_precision
+    @helper.fp32_precision
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         rms_x = torch.sum(x**2, dim=-1, keepdim=True) / self.d_model + self.eps
         rms_x = torch.sqrt(rms_x)

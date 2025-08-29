@@ -1,12 +1,12 @@
+import os
 import pprint
 
 import click
 import numpy as np
 import torch
-import wandb
 
 from cs336_basics import pipeline as pl
-from cs336_basics.common import constants as C, io
+from cs336_basics.common import io
 from cs336_basics.core import loss as L, optimizer as opt
 from cs336_basics.model import transformer as tfm
 
@@ -16,17 +16,13 @@ from cs336_basics.model import transformer as tfm
 # TODO(nino): break the loop into pytorch-lightning style func pieces, a long loop is ugly... # noqa: E501
 # TODO(nino): optimize the impl of lr_schedule, it's bare to broadcast the lr to parameter groups directly in this impl     # noqa: E501
 @click.command()
-@click.option(
-    "-c", "--config", type=click.Path(exists=True), help="Path to the config file"
-)
+@click.option("-c", "--config", type=click.Path(exists=True), help="Path to the config file")
 def start_training(config: str):
     cfg = io.load_config(config)
     pprint.pprint(cfg)
 
     # General configuration
-    device = cfg.get(
-        "device", "cuda:0" if torch.cuda.is_available() else C.DEFAULT_DEVICE
-    )
+    device = os.environ.get("DEVICE", None) or ("cuda:0" if torch.cuda.is_available() else "cpu")
     resume = cfg.get("resume", False)
     enable_gradient_clipping = cfg.get("enable_gradient_clipping", True)
     # valid_interval = cfg.get("valid_interval", 50)
@@ -38,7 +34,7 @@ def start_training(config: str):
 
     # Resume from the checkpoint
     if resume:
-        ckpt_path = cfg.get("ckpt_path", None)
+        ckpt_path = cfg.get("resume_ckpt_path", None)
         if ckpt_path is None:
             raise ValueError("Checkpoint path is required for resume training")
         start_iteration = pl.load_checkpoint(ckpt_path, model, optimizer)
@@ -46,14 +42,13 @@ def start_training(config: str):
         start_iteration = 0
 
     model = model.to(device)
-    optimizer = optimizer.to(device)
 
     # Initialize the weight & bias logger
-    wb_logger = wandb.init(
-        project=cfg["wandb"]["project"],
-        name=cfg["wandb"]["name"],
-        config=cfg,
-    )
+    # wb_logger = wandb.init(
+    #     project=cfg["wandb"]["project"],
+    #     name=cfg["wandb"]["name"],
+    #     config=cfg,
+    # )
 
     # load the dataset
     ds_train = np.load(cfg["dataset"]["src_path"], mmap_mode="r")
@@ -84,7 +79,8 @@ def start_training(config: str):
         optimizer.step()
 
         # Log the loss to Weights & Biases
-        wb_logger.log({"loss": loss.item()})
+        print(f"iter_idx: {iter_idx}, loss: {loss.item()}, lr: {lr}")
+        # wb_logger.log({"loss": loss.item()})
 
         # # Validate the model
         # if iter_idx % valid_interval == 0:

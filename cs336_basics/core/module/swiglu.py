@@ -1,6 +1,6 @@
 import torch
 
-from cs336_basics.common import constants as C, utils
+from cs336_basics.common import constants as C, decorators as helper
 from cs336_basics.core import module as M
 
 
@@ -33,17 +33,11 @@ class SwiGLU(torch.nn.Module):
         self.device = device if device is not None else torch.device(C.DEFAULT_DEVICE)
         self.dtype = dtype if dtype is not None else torch.float32
 
-        self.W1 = M.Linear(
-            self.d_model, self.d_ff, device=self.device, dtype=self.dtype
-        )
-        self.W2 = M.Linear(
-            self.d_ff, self.d_model, device=self.device, dtype=self.dtype
-        )
-        self.W3 = M.Linear(
-            self.d_model, self.d_ff, device=self.device, dtype=self.dtype
-        )
+        self.W1 = M.Linear(self.d_model, self.d_ff, device=self.device, dtype=self.dtype)
+        self.W2 = M.Linear(self.d_ff, self.d_model, device=self.device, dtype=self.dtype)
+        self.W3 = M.Linear(self.d_model, self.d_ff, device=self.device, dtype=self.dtype)
 
-    @utils.fp32_precision
+    @helper.fp32_precision
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         lin_pass = self.W1(x)  # W1: (d_ff, d_model) x -> (..., d_ff)
         silu_pass = lin_pass * torch.sigmoid(lin_pass)
