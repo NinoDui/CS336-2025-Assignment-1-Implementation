@@ -65,7 +65,7 @@ def load_text(path: T.FileType) -> str:
     if isinstance(path, BinaryIO | IO):
         return path.read().decode("utf-8")
     else:
-        with open(path, encoding="utf-8") as f:
+        with open(path, encoding="utf-8", errors="replace") as f:
             return f.read()
 
 

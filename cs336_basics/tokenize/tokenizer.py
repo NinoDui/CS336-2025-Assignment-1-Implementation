@@ -28,15 +28,16 @@ class Tokenizer:
         cls, vocab_filepath: T.PathLike, merges_filepath: T.PathLike, *, special_tokens: list[str] | None = None
     ) -> "Tokenizer":
         vocab_content = io.load_vocab(vocab_filepath)
-        vocab = {int(k): v for k, v in vocab_content.items()}
+        vocab = {int(k): v.encode("utf-8") for k, v in vocab_content.items()}
 
         merges_content = io.load_text(merges_filepath)
         merges = []
         for line in merges_content.split("\n"):
             if not line or len(line.strip()) == 0:
                 break
-            p1, p2, *_ = line.split()
+            p1, p2, *_ = line.rsplit(" ", 1)
             merges.append((p1.encode("utf-8"), p2.encode("utf-8")))
+
         return cls(vocab, merges, special_tokens=special_tokens)
 
     def encode(self, text: str) -> list[int]:
