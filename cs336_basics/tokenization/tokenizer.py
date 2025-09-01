@@ -3,7 +3,7 @@ from collections.abc import Iterable
 import regex as re
 
 from cs336_basics.common import constants as C, io, types as T
-from cs336_basics.tokenize import bpe, pretoken as pre
+from cs336_basics.tokenization import bpe, pretoken as pre
 
 
 class Tokenizer:

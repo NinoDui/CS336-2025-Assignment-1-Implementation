@@ -1,4 +1,8 @@
-vocab_filepath: "data/output/TinyStoriesV2-GPT4-train-vocab.json"
-merges_filepath: "data/output/TinyStoriesV2-GPT4-train-merges.txt"
-special_tokens:
-  - "<|endoftext|>"
+tokenizer:
+  vocab_filepath: "data/output/TinyStoriesV2-GPT4-train-vocab.json"
+  merges_filepath: "data/output/TinyStoriesV2-GPT4-train-merges.txt"
+  special_tokens:
+    - "<|endoftext|>"
+
+input_file: "data/TinyStoriesV2-GPT4-train.txt"
+output_folder: "data/output/tokenized"

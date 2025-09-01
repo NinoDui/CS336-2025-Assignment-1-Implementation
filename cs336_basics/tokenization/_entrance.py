@@ -6,7 +6,7 @@ import click
 import numpy as np
 
 from cs336_basics.common import constants as C, io
-from cs336_basics.tokenize import bpe, pretoken as pre, tokenizer as tk
+from cs336_basics.tokenization import bpe, pretoken as pre, tokenizer as tk
 
 logger = logging.getLogger(__name__)
 

@@ -16,9 +16,9 @@ model:
   causal_mask: true
 
 optimizer:
-  lr: 1e-3
+  lr: 1.0e-3
   betas: [0.9, 0.999]
-  eps: 1e-8
+  eps: 1.0e-8
   lambda_weight_decay: 0.01
 
 gradient_clipping:
@@ -26,8 +26,8 @@ gradient_clipping:
 
 lr_scheduler:
   name: "cosine_annealing"
-  lr: 1e-3  # max_learning_rate
-  lr_min: 1e-4  # min_learning_rate
+  lr: 1.0e-3  # max_learning_rate
+  lr_min: 1.0e-4  # min_learning_rate
   n_iter_warmup: 1_000
   n_cosine_annealing: 10_000
 
@@ -36,6 +36,7 @@ wandb:
   name: "tinystories-train"
 
 dataset:
+  src_path: "data/output/token_part_train.npy"
   batch_size: 16
   context_length: 56
 

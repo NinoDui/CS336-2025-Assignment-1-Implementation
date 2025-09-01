@@ -3,8 +3,8 @@ import logging
 import regex as re
 
 from cs336_basics.common import constants as C, decorators as helper, types as T
-from cs336_basics.tokenize import pretoken as pre
-from cs336_basics.tokenize.heap import MaxHeap
+from cs336_basics.tokenization import pretoken as pre
+from cs336_basics.tokenization.heap import MaxHeap
 
 logger = logging.getLogger(__name__)
 

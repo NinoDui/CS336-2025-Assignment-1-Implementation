@@ -6,7 +6,7 @@ from typing import Any
 import pytest
 
 from cs336_basics.common import io
-from cs336_basics.tokenize import pretoken as pre, utils
+from cs336_basics.tokenization import pretoken as pre, utils
 
 WORD_ELEMENTS = ["Ashin", "Monster", "Ming", "Masa", "Stone"]
 RESOURCES = {w: idx + 1 for idx, w in enumerate(WORD_ELEMENTS)}

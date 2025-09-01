@@ -12,7 +12,7 @@ from torch import Tensor
 from cs336_basics import pipeline
 from cs336_basics.core import functions as F, loss, module as M, optimizer as opt
 from cs336_basics.model import attn, transformer
-from cs336_basics.tokenize import bpe, tokenizer as tk
+from cs336_basics.tokenization import bpe, tokenizer as tk
 
 
 def run_linear(

@@ -6,7 +6,7 @@ import multiprocessing as mp
 import regex as re
 
 from cs336_basics.common import constants as C, decorators as helper, io, types as T
-from cs336_basics.tokenize import utils
+from cs336_basics.tokenization import utils
 
 logger = logging.getLogger(__name__)
 

@@ -39,7 +39,7 @@ def start_training(config: str):
             raise ValueError("Checkpoint path is required for resume training")
         start_iteration = pl.load_checkpoint(ckpt_path, model, optimizer)
     else:
-        start_iteration = 0
+        start_iteration = 1
 
     model = model.to(device)
 
@@ -72,7 +72,7 @@ def start_training(config: str):
 
         # Update the learning rate scheduler
         lr = opt.lr_schedule(iter_idx=iter_idx, **cfg["lr_scheduler"])
-        for p in optimizer.param_groups():
+        for p in optimizer.param_groups:
             p["lr"] = lr
 
         # Update the model
