@@ -1,3 +1,4 @@
+import concurrent.futures as cf
 import logging
 import os
 
@@ -66,36 +67,40 @@ def tokenize(config_path: str):
     cfg: dict = io.load_config(config_path)
     logger.info(f"Tokenizing with config: {cfg}")
 
-    tokenizer = tk.Tokenizer.from_file(**cfg["tokenizer"])
-    token_ids = []
-    with open(cfg["input_file"], "rb") as f:
-        buffer = b""
-        while True:
-            content = f.read(C.DEFAULT_MAX_CHUNK_SIZE)
-            if not content or len(content) == 0:
-                break
-
-            buffer += content
-            last_space_pos = buffer.rfind(b" ")
-            if last_space_pos != -1:
-                valid_content = buffer[:last_space_pos]
-                buffer = buffer[last_space_pos + 1 :]
-            else:
-                valid_content = buffer
-                buffer = b""
-
-            tokens = tokenizer.encode(valid_content.decode("utf-8", errors="replace"))
-            token_ids.extend(tokens)
-
-            logger.info(f"Tokenized {len(valid_content)} bytes into {len(tokens)} tokens")
-
-        np_token_ids = np.array(token_ids, dtype=np.int32)
-
     output_folder = cfg.get("output_folder", os.path.dirname(cfg["input_file"]))
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
-    output_file = os.path.join(output_folder, os.path.basename(cfg["input_file"]).replace(".txt", ".npy"))
+
+    def reduce(output_folder: str):
+        import glob
+
+        token_files = glob.glob(os.path.join(output_folder, "*.npy"))
+        token_files = sorted(token_files, key=lambda x: int(x.split("/")[-1].split(".")[0]))
+        token_ids = np.concatenate([np.load(file) for file in token_files])
+        np.save(os.path.join(output_folder, "token_all.npy"), token_ids)
+        logger.info(f"Merged {len(token_files)} files into {token_ids.shape} tokens")
+
+    with cf.ProcessPoolExecutor(max_workers=cfg.get("num_processes", C.DEFAULT_MAX_NUM_PROCESSES)) as executor:
+        futures = []
+        for idx, content in enumerate(io.read_until(cfg["input_file"], separator=[" "], bytes_mode=False)):
+            futures.append(executor.submit(task, cfg, content, idx))
+
+        for future in cf.as_completed(futures):
+            future.result()
+
+    reduce(output_folder)
+    logger.info("Task Done!")
+
+
+def task(config: dict, content: str, idx: int):
+    tokenizer = tk.Tokenizer.from_file(**config["tokenizer"])
+    token_ids = tokenizer.encode(content)
+    np_token_ids = np.array(token_ids, dtype=np.int32)
+
+    output_folder = config.get("output_folder", os.path.dirname(config["input_file"]))
+    output_file = os.path.join(output_folder, f"{idx}.npy")
     np.save(output_file, np_token_ids)
+    logger.info(f"Tokenized {len(content)} bytes into {np_token_ids.shape} tokens and saved to {output_file}")
 
 
 if __name__ == "__main__":

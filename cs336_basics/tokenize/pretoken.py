@@ -1,4 +1,4 @@
-from collections.abc import Generator, Iterable
+from collections.abc import Iterable
 import concurrent.futures as cf
 import logging
 import multiprocessing as mp
@@ -94,10 +94,16 @@ def pretoken_and_count_in_parallel(
     """
     with cf.ProcessPoolExecutor(max_workers=num_processes) as executor:
         futures: list[cf.Future] = []
-        for chunk in _read(filepath, split_special_token=b"<|endoftext|>"):
-            futures.append(
-                executor.submit(pretoken_and_count, chunk, special_tokens=special_tokens, split_pattern=split_pattern)
-            )
+        for raw_content in io.read_until(filepath, separator=[" ", "<|endoftext|>"], bytes_mode=False):
+            logger.info(f"[{mp.current_process().name} - Pretoken] Read {len(raw_content)} strings")
+            chunks = utils.split(raw_content, split_tokens=special_tokens, keep_split_tokens=False)
+            for chunk in chunks:
+                logger.info(f"[{mp.current_process().name} - Pretoken] proc {len(chunk)} strings")
+                futures.append(
+                    executor.submit(
+                        pretoken_and_count, chunk, special_tokens=special_tokens, split_pattern=split_pattern
+                    )
+                )
 
         result: dict[T.BytesToken, int] = {}
         for future in futures:
@@ -110,61 +116,3 @@ def _reduce(d1: dict[T.BytesToken, int], d2: dict[T.BytesToken, int]) -> dict[T.
     for token, cnt in d2.items():
         d1[token] = d1.get(token, 0) + cnt
     return d1
-
-
-def _read(file_path: str, split_special_token: str | bytes) -> Generator[bytes]:
-    """Read the file and yield the chunks
-
-    Args:
-        file_path (str): The path to the file
-        split_special_token (str | bytes): The special token to split the file
-        num_consumers (int): The number of consumers
-
-    Yields:
-        bytes: The chunks
-    """
-    if isinstance(split_special_token, str):
-        split_special_token = split_special_token.encode("utf-8")
-
-    logger.info(f"[{mp.current_process().name} - Reader] Starting to read file {file_path}")
-
-    with open(file_path, "rb") as f:
-        buffer, chunk_idx, byte_cnt = b"", 0, 0
-        while True:
-            raw_content = f.read(C.DEFAULT_MAX_CHUNK_SIZE)
-            if not raw_content or len(raw_content) == 0:
-                break
-            buffer += raw_content
-
-            last_space_pos = buffer.rfind(b" ")
-            last_split_special_token_pos = buffer.rfind(split_special_token)
-            if last_space_pos != -1 and last_split_special_token_pos != -1:
-                # both ' ' and split_special_token are found
-                end_pos = min(last_space_pos, last_split_special_token_pos + len(split_special_token))
-            elif last_space_pos != -1:
-                # only ' ' is found
-                end_pos = last_space_pos
-            elif last_split_special_token_pos != -1:
-                # only split_special_token is found
-                end_pos = last_split_special_token_pos + len(split_special_token)
-            else:
-                # no ' ' or split_special_token is found
-                end_pos = len(buffer)
-
-            valid_content = buffer[:end_pos]
-            buffer = buffer[end_pos:] if end_pos < len(buffer) else b""
-
-            chunks = utils.split(valid_content, split_tokens=[split_special_token], keep_split_tokens=False)
-            for chunk in chunks:
-                yield chunk
-
-                # monitor status
-                chunk_idx += 1
-                byte_cnt += len(chunk)
-
-                if chunk_idx % 1_000_000 == 0:
-                    logger.info(
-                        f"[{mp.current_process().name} - Reader] Read {chunk_idx + 1}th chunks, {len(chunk)} bytes"
-                    )
-
-    logger.info(f"[{mp.current_process().name} - Reader] Finished reading {byte_cnt} bytes from file {file_path}")
