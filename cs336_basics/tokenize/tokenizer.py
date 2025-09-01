@@ -29,6 +29,10 @@ class Tokenizer:
     ) -> "Tokenizer":
         vocab_content = io.load_vocab(vocab_filepath)
         vocab = {int(k): v.encode("utf-8") for k, v in vocab_content.items()}
+        # special post operations on vocab[128:256]
+        # TODO(nino): remove this and align the behavior in common.io
+        for i in range(128, 256):
+            vocab[i] = bytes([i])
 
         merges_content = io.load_text(merges_filepath)
         merges = []

@@ -1,11 +1,11 @@
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Generator, Iterable
 import json
 import pathlib
 from typing import IO, BinaryIO, overload
 
 import yaml
 
-from cs336_basics.common import types as T
+from cs336_basics.common import constants as C, types as T
 
 
 @overload
@@ -105,6 +105,91 @@ def save_text(data: Iterable[str] | Iterable[bytes], path: T.PathLike, save_byte
 
 
 save_sequence: Callable = save_text
+
+
+@overload
+def read_until(
+    file_path: T.PathLike,
+    separator: Iterable[bytes] | None = None,
+    chunk_size: int | None = None,
+    bytes_mode: bool = True,
+) -> Generator[bytes]: ...
+
+
+@overload
+def read_until(
+    file_path: T.PathLike,
+    separator: Iterable[str] | None = None,
+    chunk_size: int | None = None,
+    bytes_mode: bool = False,
+) -> Generator[str]: ...
+
+
+def read_until(
+    file_path: T.PathLike,
+    separator: Iterable[bytes | str] | None = None,
+    chunk_size: int | None = None,
+    bytes_mode: bool = True,
+) -> Generator[bytes] | Generator[str]:
+    chunk_size = chunk_size or C.DEFAULT_MAX_CHUNK_SIZE
+    separator = separator or ([b" "] if bytes_mode else [" "])
+
+    if isinstance(file_path, BinaryIO | IO):
+        buffer = b"" if bytes_mode else ""
+        while True:
+            content = file_path.read(chunk_size)
+            if not content or len(content) == 0:
+                break
+            buffer += content  # type: ignore[operator]
+            valid_end, valid_sep = _find_last_pos(buffer, separator)  # type: ignore[arg-type]
+
+            if valid_end != -1:
+                valid_end += len(valid_sep)
+                yield buffer[:valid_end]
+                buffer = buffer[valid_end:]
+            else:
+                yield buffer
+                buffer = b" " if bytes_mode else " "
+    else:
+        with open(file_path, "rb") if bytes_mode else open(file_path, encoding="utf-8", errors="replace") as f:
+            buffer = b"" if bytes_mode else ""
+            while True:
+                content = f.read(chunk_size)
+                if not content or len(content) == 0:
+                    break
+                buffer += content  # type: ignore[operator]
+                valid_end, valid_sep = _find_last_pos(buffer, separator)  # type: ignore[arg-type]
+
+                if valid_end != -1:
+                    valid_end += len(valid_sep)
+                    yield buffer[:valid_end]
+                    buffer = buffer[valid_end:]
+                else:
+                    yield buffer
+                    buffer = b" " if bytes_mode else " "
+
+
+@overload
+def _find_last_pos(buffer: str, separator: Iterable[str]) -> tuple[int, str]: ...
+
+
+@overload
+def _find_last_pos(buffer: bytes, separator: Iterable[bytes]) -> tuple[int, bytes]: ...
+
+
+def _find_last_pos(buffer: bytes | str, separator: Iterable[bytes] | Iterable[str]) -> tuple[int, bytes | str]:
+    last_poses = {sep: buffer.rfind(sep) for sep in separator}  # type: ignore[arg-type]
+    last_pos, target_sep = len(buffer), None
+    for sep, pos in last_poses.items():
+        if pos != -1 and pos < last_pos:
+            last_pos = pos
+            target_sep = sep
+
+    if last_pos == len(buffer):
+        last_pos = -1
+        target_sep = b"" if isinstance(buffer, bytes) else ""
+
+    return (last_pos, target_sep)  # type: ignore[return-value]
 
 
 def encode(token: str, *, unseparable: bool = False) -> T.BytesToken:
